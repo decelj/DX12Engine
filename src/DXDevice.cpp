@@ -6,6 +6,8 @@
 #include "RootSignatureBuilder.h"
 #include "RenderTarget.h"
 
+#include <dxgidebug.h>
+
 std::unique_ptr<DXDevice> DXDevice::s_Instance = nullptr;
 
 namespace
@@ -114,10 +116,6 @@ DXDevice::DXDevice(const Window& window)
 	m_SRVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::SRV, kMaxHandles);
 }
 
-DXDevice::~DXDevice()
-{
-}
-
 void DXDevice::InitFromWindow(const Window& window)
 {
 	assert(s_Instance == nullptr);
@@ -127,6 +125,16 @@ void DXDevice::InitFromWindow(const Window& window)
 void DXDevice::Destroy()
 {
 	s_Instance.reset();
+
+#ifdef _DEBUG
+	{
+		ComPtr<IDXGIDebug1> dxgiDebug;
+		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+		{
+			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+		}
+	}
+#endif
 }
 
 ID3D12CommandQueue* DXDevice::CreateCommandQueue()
@@ -227,6 +235,32 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	ThrowIfFailed(m_Device->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(&rootSig)));
 
 	return rootSig;
+}
+
+ID3D12Resource* DXDevice::CreateCommitedResource(DXGI_FORMAT format, uint32_t width, uint32_t height)
+{
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Format = format;
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = 1;
+	desc.DepthOrArraySize = 1;
+	desc.SampleDesc.Count = 1;
+	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+	ID3D12Resource* resource = nullptr;
+	ThrowIfFailed(
+		m_Device->CreateCommittedResource(
+			&heapProps, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
+			&desc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource)));
+
+	return resource;
 }
 
 void DXDevice::Submit(ID3D12CommandList* cmdList)

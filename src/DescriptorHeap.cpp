@@ -27,10 +27,6 @@ DescriptorHeap::DescriptorHeap(DXDevice& device, DescriptorType type, uint32_t m
 	m_Heap.reset(device.CreateDescriptorHeap(&m_HandleSize, dxType, maxCount));
 }
 
-DescriptorHeap::~DescriptorHeap()
-{
-}
-
 DescriptorHandleWithIdx DescriptorHeap::AllocateHandle()
 {
 	assert(!m_FreeHandles.empty());

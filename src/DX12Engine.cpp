@@ -42,10 +42,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	DXCompiler::Initialize();
 	window.Show(nCmdShow);
 
-	std::vector<std::unique_ptr<RenderTarget>> backBuffers = DXDevice::Instance().CreateSwapChainTargets();
-
 	MSG msg = { 0 };
 	{
+		std::vector<std::unique_ptr<RenderTarget>> backBuffers = DXDevice::Instance().CreateSwapChainTargets();
 		DXCommandList cmdList(DXDevice::Instance());
 
 		uint32_t frame = 0;

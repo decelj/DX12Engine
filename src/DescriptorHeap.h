@@ -26,7 +26,7 @@ class DescriptorHeap
 {
 public:
 	DescriptorHeap(DXDevice& device, DescriptorType type, uint32_t maxCount);
-	~DescriptorHeap();
+	~DescriptorHeap() = default;
 
 	DescriptorHandleWithIdx AllocateHandle();
 	void FreeHandle(const DescriptorHandleWithIdx& desc);
