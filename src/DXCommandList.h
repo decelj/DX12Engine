@@ -10,12 +10,12 @@ class DXFence;
 class DXCommandList
 {
 public:
-	DXCommandList(DXDevice& device);
+	DXCommandList();
 	~DXCommandList();
 
 	void Begin(ID3D12PipelineState* pso = nullptr);
 	void End();
-	void Submit(DXDevice& device);
+	void Submit();
 
 	ID3D12GraphicsCommandList* Native() { return m_CmdList.get(); }
 

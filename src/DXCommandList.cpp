@@ -4,13 +4,15 @@
 #include "DXFence.h"
 #include "HRException.h"
 
-DXCommandList::DXCommandList(DXDevice& device)
+DXCommandList::DXCommandList()
 	: m_State(State::CLOSED)
 	, m_AllocatorIdx(0u)
 	, m_CmdList(nullptr)
 	, m_CmdAllocators({})
 	, m_Fences({})
 {
+	DXDevice& device = DXDevice::Instance();
+
 	for (AllocatorPtr& allocator : m_CmdAllocators)
 	{
 		allocator.reset(device.CreateCommandAllocator());
@@ -18,7 +20,7 @@ DXCommandList::DXCommandList(DXDevice& device)
 
 	for (FencePtr& fence : m_Fences)
 	{
-		fence = std::make_unique<DXFence>(device);
+		fence = std::make_unique<DXFence>();
 	}
 
 	m_CmdList.reset(device.CreateCommandList(m_CmdAllocators[m_AllocatorIdx].get()));
@@ -58,8 +60,9 @@ void DXCommandList::End()
 	m_CmdList->Close();
 }
 
-void DXCommandList::Submit(DXDevice& device)
+void DXCommandList::Submit()
 {
+	DXDevice& device = DXDevice::Instance();
 	device.Submit(m_CmdList.get());
-	m_Fences[m_AllocatorIdx]->Signal(device);
+	m_Fences[m_AllocatorIdx]->Signal();
 }

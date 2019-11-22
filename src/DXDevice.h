@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "DescriptorHeap.h"
+#include "Resource.h"
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -30,7 +31,8 @@ public:
 	ID3D12DescriptorHeap* CreateDescriptorHeap(uint32_t* outHandleSize, D3D12_DESCRIPTOR_HEAP_TYPE heapType, uint32_t maxCount);
 	DescriptorHandleWithIdx CreateRTVHandle(ID3D12Resource* renderTarget);
 	ID3D12RootSignature* CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params);
-	ID3D12Resource* CreateCommitedResource(DXGI_FORMAT format, uint32_t width, uint32_t height);
+	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState);
+	ID3D12Resource* CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize);
 
 	void Submit(ID3D12CommandList* cmdList);
 	void SignalFence(ID3D12Fence* fence, uint64_t value);

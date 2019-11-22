@@ -5,6 +5,7 @@
 #include "d3dx12.h"
 #include "RootSignatureBuilder.h"
 #include "RenderTarget.h"
+#include "d3dx12.h"
 
 #include <dxgidebug.h>
 
@@ -237,17 +238,32 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	return rootSig;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedResource(DXGI_FORMAT format, uint32_t width, uint32_t height)
+ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState)
 {
 	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Format = format;
 	desc.Width = width;
 	desc.Height = height;
 	desc.MipLevels = 1;
-	desc.DepthOrArraySize = 1;
+	desc.DepthOrArraySize = depth;
 	desc.SampleDesc.Count = 1;
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	switch (dimension)
+	{
+	case ResourceDimension::Linear:
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		break;
+	case ResourceDimension::Texture2D:
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		break;
+	case ResourceDimension::Texture3D:
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+		break;
+	default:
+		assert(false);
+		break;
+	}
 
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -258,7 +274,31 @@ ID3D12Resource* DXDevice::CreateCommitedResource(DXGI_FORMAT format, uint32_t wi
 	ThrowIfFailed(
 		m_Device->CreateCommittedResource(
 			&heapProps, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
-			&desc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource)));
+			&desc, initialState, nullptr, IID_PPV_ARGS(&resource)));
+
+	return resource;
+}
+
+ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize)
+{
+	assert(data);
+	assert(dataSize);
+
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+	ID3D12Resource* resource = nullptr;
+	ThrowIfFailed(
+		m_Device->CreateCommittedResource(
+			&heapProps, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
+			&desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&resource)));
+
+	uint8_t* gpuData = nullptr;
+	ThrowIfFailed(resource->Map(0, &CD3DX12_RANGE(0, 0), reinterpret_cast<void**>(&gpuData)));
+	memcpy(gpuData, data, dataSize);
+	resource->Unmap(0, nullptr);
 
 	return resource;
 }
@@ -283,7 +323,7 @@ std::vector<std::unique_ptr<RenderTarget>> DXDevice::CreateSwapChainTargets()
 	{
 		ID3D12Resource* buffer = nullptr;
 		m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&buffer));
-		outTargets[i] = std::make_unique<RenderTarget>(*this, buffer, ResourceState::Common);
+		outTargets[i] = std::make_unique<RenderTarget>(buffer, ResourceState::Common);
 	}
 
 	return outTargets;

@@ -3,15 +3,14 @@
 #include "stdafx.h"
 #include <d3d12.h>
 
-class DXDevice;
-
 class DXFence
 {
 public:
-	DXFence(DXDevice& device);
+	DXFence();
 	~DXFence();
 
-	void Signal(DXDevice& device);
+	bool Ready() const;
+	void Signal();
 	void Wait();
 
 private:

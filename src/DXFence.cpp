@@ -2,11 +2,11 @@
 #include "DXDevice.h"
 #include "DXFence.h"
 
-DXFence::DXFence(DXDevice& device)
+DXFence::DXFence()
 	: m_Value(0u)
 	, m_Fence(nullptr)
 {
-	m_Fence.reset(device.CreateFence());
+	m_Fence.reset(DXDevice::Instance().CreateFence());
 	m_Event = CreateEvent(nullptr, false, false, nullptr);
 	assert(m_Event);
 }
@@ -17,17 +17,22 @@ DXFence::~DXFence()
 	CloseHandle(m_Event);
 }
 
-void DXFence::Signal(DXDevice& device)
+void DXFence::Signal()
 {
 	++m_Value;
-	device.SignalFence(m_Fence.get(), m_Value);
+	DXDevice::Instance().SignalFence(m_Fence.get(), m_Value);
 }
 
 void DXFence::Wait()
 {
-	if (m_Fence->GetCompletedValue() != m_Value)
+	if (!Ready())
 	{
 		m_Fence->SetEventOnCompletion(m_Value, m_Event);
 		WaitForSingleObjectEx(m_Event, INFINITE, FALSE);
 	}
+}
+
+bool DXFence::Ready() const
+{
+	return m_Fence->GetCompletedValue() == m_Value;
 }

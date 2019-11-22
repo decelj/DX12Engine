@@ -45,7 +45,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MSG msg = { 0 };
 	{
 		std::vector<std::unique_ptr<RenderTarget>> backBuffers = DXDevice::Instance().CreateSwapChainTargets();
-		DXCommandList cmdList(DXDevice::Instance());
+		DXCommandList cmdList;
 
 		uint32_t frame = 0;
 		while (msg.message != WM_QUIT)
@@ -66,7 +66,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				cmdList.Native()->ClearRenderTargetView(backBuffer->RTVHandle().cpuHandle, clearColor.data(), 0, nullptr);
 				backBuffer->TransitionTo(ResourceState::Present, cmdList);
 				cmdList.End();
-				cmdList.Submit(DXDevice::Instance());
+				cmdList.Submit();
 				DXDevice::Instance().Present();
 
 				++frame;
