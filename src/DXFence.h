@@ -1,6 +1,8 @@
 #pragma once
 
 #include "stdafx.h"
+#include "CommandType.h"
+
 #include <d3d12.h>
 
 class DXFence
@@ -10,7 +12,7 @@ public:
 	~DXFence();
 
 	bool Ready() const;
-	void Signal();
+	void Signal(CommandType queue=CommandType::GRAPHICS);
 	void Wait();
 
 private:

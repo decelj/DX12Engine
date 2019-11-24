@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "DescriptorHeap.h"
 #include "Resource.h"
+#include "CommandType.h"
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -24,9 +25,8 @@ public:
 
 	static DXDevice& Instance() { return *s_Instance; }
 
-	ID3D12CommandQueue* CreateCommandQueue();
-	ID3D12GraphicsCommandList* CreateCommandList(ID3D12CommandAllocator* allocator);
-	ID3D12CommandAllocator* CreateCommandAllocator();
+	ID3D12GraphicsCommandList* CreateCommandList(ID3D12CommandAllocator* allocator, D3D12_COMMAND_LIST_TYPE type);
+	ID3D12CommandAllocator* CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
 	ID3D12Fence* CreateFence();
 	ID3D12DescriptorHeap* CreateDescriptorHeap(uint32_t* outHandleSize, D3D12_DESCRIPTOR_HEAP_TYPE heapType, uint32_t maxCount);
 	DescriptorHandleWithIdx CreateRTVHandle(ID3D12Resource* renderTarget);
@@ -34,8 +34,8 @@ public:
 	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState);
 	ID3D12Resource* CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize);
 
-	void Submit(ID3D12CommandList* cmdList);
-	void SignalFence(ID3D12Fence* fence, uint64_t value);
+	void Submit(ID3D12CommandList* cmdList, CommandType destQueue);
+	void SignalFence(ID3D12Fence* fence, uint64_t value, CommandType destQueue);
 	void Present() { m_SwapChain->Present(0, 0); }
 	void ReleaseRTVDescriptor(DescriptorHandleWithIdx& handle) { m_RTVHeap->FreeHandle(handle); }
 	void ReleaseSRVDescriptor(DescriptorHandleWithIdx& handle) { m_SRVHeap->FreeHandle(handle); }
@@ -44,12 +44,14 @@ public:
 
 private:
 	DXDevice(const Window& window);
+	ID3D12CommandQueue* CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type);
 
 	static std::unique_ptr<DXDevice>		s_Instance;
 
 	ReleasedUniquePtr<ID3D12Device>			m_Device;
 	ReleasedUniquePtr<IDXGISwapChain1>		m_SwapChain;
 	ReleasedUniquePtr<ID3D12CommandQueue>	m_CmdQueue;
+	ReleasedUniquePtr<ID3D12CommandQueue>	m_CopyQueue;
 
 	std::unique_ptr<DescriptorHeap>			m_SRVHeap;
 	std::unique_ptr<DescriptorHeap>			m_RTVHeap;

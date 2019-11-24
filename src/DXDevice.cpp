@@ -47,6 +47,7 @@ DXDevice::DXDevice(const Window& window)
 	: m_Device(nullptr)
 	, m_SwapChain(nullptr)
 	, m_CmdQueue(nullptr)
+	, m_CopyQueue(nullptr)
 	, m_SRVHeap(nullptr)
 	, m_RTVHeap(nullptr)
 {
@@ -86,7 +87,8 @@ DXDevice::DXDevice(const Window& window)
 		m_Device.reset(device);
 	}
 
-	m_CmdQueue.reset(CreateCommandQueue());
+	m_CmdQueue.reset(CreateCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT));
+	m_CopyQueue.reset(CreateCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY));
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.BufferCount = 2;
@@ -138,11 +140,11 @@ void DXDevice::Destroy()
 #endif
 }
 
-ID3D12CommandQueue* DXDevice::CreateCommandQueue()
+ID3D12CommandQueue* DXDevice::CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type)
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Type = type;
 
 	ID3D12CommandQueue* cmdQueue = nullptr;
 	ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&cmdQueue)));
@@ -150,20 +152,20 @@ ID3D12CommandQueue* DXDevice::CreateCommandQueue()
 	return cmdQueue;
 }
 
-ID3D12GraphicsCommandList* DXDevice::CreateCommandList(ID3D12CommandAllocator* allocator)
+ID3D12GraphicsCommandList* DXDevice::CreateCommandList(ID3D12CommandAllocator* allocator, D3D12_COMMAND_LIST_TYPE type)
 {
 	ID3D12GraphicsCommandList* cmdList = nullptr;
 	ThrowIfFailed(
-		m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
+		m_Device->CreateCommandList(0, type, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
 
 	return cmdList;
 }
 
-ID3D12CommandAllocator* DXDevice::CreateCommandAllocator()
+ID3D12CommandAllocator* DXDevice::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type)
 {
 	ID3D12CommandAllocator* allocator = nullptr;
 	ThrowIfFailed(
-		m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator)));
+		m_Device->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator)));
 
 	return allocator;
 }
@@ -253,6 +255,8 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	{
 	case ResourceDimension::Linear:
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		break;
 	case ResourceDimension::Texture2D:
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -303,15 +307,44 @@ ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC
 	return resource;
 }
 
-void DXDevice::Submit(ID3D12CommandList* cmdList)
+void DXDevice::Submit(ID3D12CommandList* cmdList, CommandType destQueue)
 {
 	ID3D12CommandList* cmdLists[] = { cmdList };
-	m_CmdQueue->ExecuteCommandLists(1u, cmdLists);
+
+	switch (destQueue)
+	{
+	case CommandType::GRAPHICS:
+		m_CmdQueue->ExecuteCommandLists(1u, cmdLists);
+		break;
+	case CommandType::COMPUTE:
+		assert(false); // TODO
+		break;
+	case CommandType::COPY:
+		m_CopyQueue->ExecuteCommandLists(1u, cmdLists);
+		break;
+	default:
+		assert(false);
+		break;
+	}
 }
 
-void DXDevice::SignalFence(ID3D12Fence* fence, uint64_t value)
+void DXDevice::SignalFence(ID3D12Fence* fence, uint64_t value, CommandType destQueue)
 {
-	m_CmdQueue->Signal(fence, value);
+	switch (destQueue)
+	{
+	case CommandType::GRAPHICS:
+		m_CmdQueue->Signal(fence, value);
+		break;
+	case CommandType::COMPUTE:
+		assert(false); // TODO
+		break;
+	case CommandType::COPY:
+		m_CopyQueue->Signal(fence, value);
+		break;
+	default:
+		assert(false);
+		break;
+	}
 }
 
 std::vector<std::unique_ptr<RenderTarget>> DXDevice::CreateSwapChainTargets()

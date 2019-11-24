@@ -34,10 +34,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\UploadManager.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\WindowsHelpers.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CommandType.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DescriptorHeap.h" />
     <ClInclude Include="src\DX12Engine.h" />
@@ -52,6 +54,7 @@
     <ClInclude Include="src\ResourceState.h" />
     <ClInclude Include="src\RootSignatureBuilder.h" />
     <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\UploadManager.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\WindowsHelpers.h" />
   </ItemGroup>

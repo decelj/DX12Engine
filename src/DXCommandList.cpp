@@ -4,8 +4,9 @@
 #include "DXFence.h"
 #include "HRException.h"
 
-DXCommandList::DXCommandList()
-	: m_State(State::CLOSED)
+DXCommandList::DXCommandList(CommandType type)
+	: m_Type(type)
+	, m_State(State::CLOSED)
 	, m_AllocatorIdx(0u)
 	, m_CmdList(nullptr)
 	, m_CmdAllocators({})
@@ -13,9 +14,26 @@ DXCommandList::DXCommandList()
 {
 	DXDevice& device = DXDevice::Instance();
 
+	D3D12_COMMAND_LIST_TYPE nativeType = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	switch (type)
+	{
+	case CommandType::GRAPHICS:
+		nativeType = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		break;
+	case CommandType::COMPUTE:
+		nativeType = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+		break;
+	case CommandType::COPY:
+		nativeType = D3D12_COMMAND_LIST_TYPE_COPY;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
 	for (AllocatorPtr& allocator : m_CmdAllocators)
 	{
-		allocator.reset(device.CreateCommandAllocator());
+		allocator.reset(device.CreateCommandAllocator(nativeType));
 	}
 
 	for (FencePtr& fence : m_Fences)
@@ -23,7 +41,7 @@ DXCommandList::DXCommandList()
 		fence = std::make_unique<DXFence>();
 	}
 
-	m_CmdList.reset(device.CreateCommandList(m_CmdAllocators[m_AllocatorIdx].get()));
+	m_CmdList.reset(device.CreateCommandList(m_CmdAllocators[m_AllocatorIdx].get(), nativeType));
 	m_CmdList->Close();
 }
 
@@ -63,6 +81,6 @@ void DXCommandList::End()
 void DXCommandList::Submit()
 {
 	DXDevice& device = DXDevice::Instance();
-	device.Submit(m_CmdList.get());
+	device.Submit(m_CmdList.get(), m_Type);
 	m_Fences[m_AllocatorIdx]->Signal();
 }

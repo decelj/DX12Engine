@@ -1,6 +1,8 @@
 #pragma once
 
 #include "stdafx.h"
+#include "CommandType.h"
+
 #include <d3d12.h>
 #include <array>
 
@@ -10,12 +12,14 @@ class DXFence;
 class DXCommandList
 {
 public:
-	DXCommandList();
+	DXCommandList(CommandType type);
 	~DXCommandList();
 
 	void Begin(ID3D12PipelineState* pso = nullptr);
 	void End();
 	void Submit();
+
+	bool IsOpen() const { return m_State == State::OPEN; }
 
 	ID3D12GraphicsCommandList* Native() { return m_CmdList.get(); }
 
@@ -30,6 +34,7 @@ private:
 	using AllocatorPtr = ReleasedUniquePtr<ID3D12CommandAllocator>;
 	using CommandListPtr = ReleasedUniquePtr<ID3D12GraphicsCommandList>;
 
+	const CommandType								m_Type;
 	State											m_State;
 	uint8_t											m_AllocatorIdx;
 

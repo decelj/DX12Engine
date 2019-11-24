@@ -4,7 +4,7 @@
 #include "DXCommandList.h"
 
 RenderTarget::RenderTarget(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth)
-	: Resource(dimension, format, width, height, depth, nullptr, 0, ResourceState::Common)
+	: Resource(dimension, format, width, height, depth, ResourceState::Common)
 	, m_IsOwner(true)
 {
 	m_RTVHandle = DXDevice::Instance().CreateRTVHandle(m_Resource.get());

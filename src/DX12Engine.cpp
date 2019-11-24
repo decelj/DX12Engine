@@ -8,6 +8,7 @@
 #include "DXCompiler.h"
 #include "DXCommandList.h"
 #include "RenderTarget.h"
+#include "UploadManager.h"
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -45,7 +46,36 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MSG msg = { 0 };
 	{
 		std::vector<std::unique_ptr<RenderTarget>> backBuffers = DXDevice::Instance().CreateSwapChainTargets();
-		DXCommandList cmdList;
+		DXCommandList cmdList(CommandType::GRAPHICS);
+		UploadManager uploadMngr;
+
+		struct Vertex
+		{
+			float x;
+			float y;
+			float z;
+
+			float u;
+			float v;
+		};
+
+		float aspect = 1.f;
+		Vertex triangleVertexData[] =
+		{
+			{  0.0f ,  0.25f * aspect, 0.0f, 0.5f, 0.0f },
+			{  0.25f, -0.25f * aspect, 0.0f, 1.0f, 1.0f },
+			{ -0.25f, -0.25f * aspect, 0.0f, 0.0f, 1.0f }
+		};
+
+		Resource triVerts(ResourceDimension::Linear, DXGI_FORMAT_UNKNOWN, sizeof(triangleVertexData), 1, 1, ResourceState::Common);
+		uploadMngr.UploadDataTo((void*)triangleVertexData, sizeof(triangleVertexData), triVerts);
+		uploadMngr.MakeAllResident();
+		uploadMngr.WaitForUpload();
+
+		cmdList.Begin();
+		triVerts.TransitionTo(ResourceState::VertexAndConstantBuffer, cmdList);
+		cmdList.End();
+		cmdList.Submit();
 
 		uint32_t frame = 0;
 		while (msg.message != WM_QUIT)

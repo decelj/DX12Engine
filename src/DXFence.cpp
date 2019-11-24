@@ -17,10 +17,10 @@ DXFence::~DXFence()
 	CloseHandle(m_Event);
 }
 
-void DXFence::Signal()
+void DXFence::Signal(CommandType queue)
 {
 	++m_Value;
-	DXDevice::Instance().SignalFence(m_Fence.get(), m_Value);
+	DXDevice::Instance().SignalFence(m_Fence.get(), m_Value, queue);
 }
 
 void DXFence::Wait()
