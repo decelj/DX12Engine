@@ -14,5 +14,6 @@
 #include <array>
 
 #include "ReleasedUniquePtr.h"
+#include "glm.h"
 
 constexpr uint32_t kNumFramesInFlight = 2u;
