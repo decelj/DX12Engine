@@ -229,6 +229,7 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	desc.Desc_1_1.NumParameters = (uint32_t)params.size();
 	desc.Desc_1_1.pParameters = params.data();
 	desc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+	desc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	ID3DBlob* serialized = nullptr;
 	ID3DBlob* error = nullptr;
@@ -305,6 +306,20 @@ ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC
 	resource->Unmap(0, nullptr);
 
 	return resource;
+}
+
+ID3D12PipelineState* DXDevice::CreatePSO(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc)
+{
+	ID3D12PipelineState* pso = nullptr;
+	ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso)));
+	return pso;
+}
+
+ID3D12PipelineState* DXDevice::CreatePSO(const D3D12_COMPUTE_PIPELINE_STATE_DESC& desc)
+{
+	ID3D12PipelineState* pso = nullptr;
+	ThrowIfFailed(m_Device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso)));
+	return pso;
 }
 
 void DXDevice::Submit(ID3D12CommandList* cmdList, CommandType destQueue)

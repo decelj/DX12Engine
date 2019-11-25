@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\DescriptorHeap.cpp" />
     <ClCompile Include="src\DX12Engine.cpp" />
     <ClCompile Include="src\DXCommandList.cpp" />
     <ClCompile Include="src\DXCompiler.cpp" />
     <ClCompile Include="src\DXDevice.cpp" />
     <ClCompile Include="src\DXFence.cpp" />
+    <ClCompile Include="src\PSOBuilder.cpp" />
     <ClCompile Include="src\RenderTarget.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\RootSignatureBuilder.cpp" />
@@ -39,6 +41,7 @@
     <ClCompile Include="src\WindowsHelpers.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Buffer.h" />
     <ClInclude Include="src\CommandType.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DescriptorHeap.h" />
@@ -48,6 +51,7 @@
     <ClInclude Include="src\DXDevice.h" />
     <ClInclude Include="src\DXFence.h" />
     <ClInclude Include="src\HRException.h" />
+    <ClInclude Include="src\PSOBuilder.h" />
     <ClInclude Include="src\ReleasedUniquePtr.h" />
     <ClInclude Include="src\RenderTarget.h" />
     <ClInclude Include="src\Resource.h" />

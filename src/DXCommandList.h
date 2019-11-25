@@ -4,7 +4,6 @@
 #include "CommandType.h"
 
 #include <d3d12.h>
-#include <array>
 
 class DXDevice;
 class DXFence;
