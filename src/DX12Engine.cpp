@@ -72,8 +72,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			{ -0.25f, -0.25f, 0.0f, 0.0f, 1.0f }
 		};
 
-		VertexBuffer triVerts(DXGI_FORMAT_UNKNOWN, sizeof(triangleVertexData), sizeof(Vertex));
+		VertexBuffer triVerts(sizeof(triangleVertexData), sizeof(Vertex));
 		uploadMngr.UploadDataTo((void*)triangleVertexData, sizeof(triangleVertexData), triVerts);
+
+		uint16_t triangleIndicies[] =
+		{
+			0, 1, 2
+		};
+		IndexBuffer triIndicies(_countof(triangleIndicies));
+		uploadMngr.UploadDataTo((void*)triangleIndicies, 2u * 3u, triIndicies);
+
 		uploadMngr.MakeAllResident();
 		uploadMngr.WaitForUpload();
 
@@ -155,7 +163,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				cmdList.Native()->SetPipelineState(pso.get());
 				cmdList.Native()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				cmdList.Native()->IASetVertexBuffers(0, 1, &triVerts.View());
-				cmdList.Native()->DrawInstanced(3, 1, 0, 0);
+				cmdList.Native()->IASetIndexBuffer(&triIndicies.View());
+				cmdList.Native()->DrawIndexedInstanced(triIndicies.Count(), 1, 0, 0, 0);
 
 				backBuffer->TransitionTo(ResourceState::Present, cmdList);
 				cmdList.End();

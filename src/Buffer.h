@@ -9,21 +9,36 @@
 class VertexBuffer : public Resource
 {
 public:
-	VertexBuffer(DXGI_FORMAT format, uint32_t size, uint32_t stride);
+	VertexBuffer(uint32_t size, uint32_t stride);
 	VertexBuffer(const VertexBuffer& other) = delete;
 	~VertexBuffer() = default;
 
 	const D3D12_VERTEX_BUFFER_VIEW& View() const { return m_View; }
+	uint32_t Count() const { return m_View.SizeInBytes / m_View.StrideInBytes; }
 
 private:
 	D3D12_VERTEX_BUFFER_VIEW	m_View;
 };
 
 
+class IndexBuffer : public Resource
+{
+public:
+	IndexBuffer(uint32_t count);
+	IndexBuffer(const IndexBuffer& other) = delete;
+	~IndexBuffer() = default;
+
+	const D3D12_INDEX_BUFFER_VIEW& View() const { return m_View; }
+	uint32_t Count() const { return m_View.SizeInBytes >> 1u; }
+
+private:
+	D3D12_INDEX_BUFFER_VIEW		m_View;
+};
+
+
 class ConstantBuffer : public Resource
 {
 public:
-	ConstantBuffer(size_t size);
 	ConstantBuffer(uint32_t size);
 	ConstantBuffer(const ConstantBuffer& other) = delete;
 	~ConstantBuffer();
