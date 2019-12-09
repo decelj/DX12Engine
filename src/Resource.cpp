@@ -2,15 +2,17 @@
 #include "DXDevice.h"
 #include "Resource.h"
 #include "DXCommandList.h"
+#include "HRException.h"
 
-Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState)
+Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags)
 	: m_Resource(nullptr)
 	, m_CurrentState(initialState)
 {
 	DXDevice& device = DXDevice::Instance();
 	m_Resource.reset(
 		device.CreateCommitedResource(
-			dimension, format, width, height, depth, static_cast<D3D12_RESOURCE_STATES>(initialState)
+			dimension, format, width, height, depth,
+			static_cast<D3D12_RESOURCE_STATES>(initialState), flags
 		));
 }
 
@@ -18,6 +20,14 @@ Resource::Resource(ResourceState initialState)
 	: m_Resource(nullptr)
 	, m_CurrentState(initialState)
 {
+}
+
+uint8_t* Resource::Map()
+{
+	uint8_t* data = nullptr;
+	D3D12_RANGE range = {};
+	ThrowIfFailed(m_Resource->Map(0, &range, reinterpret_cast<void**>(&data)));
+	return data;
 }
 
 void Resource::TransitionTo(ResourceState destState, DXCommandList& cmdList)

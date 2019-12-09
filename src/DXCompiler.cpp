@@ -5,6 +5,8 @@
 #include <wrl.h>
 #include <dxcapi.h>
 #include <d3dcompiler.h>
+#include <locale>
+#include <codecvt>
 
 using Microsoft::WRL::ComPtr;
 
@@ -165,11 +167,12 @@ namespace Impl
 #endif
 
 		const std::string target = type + "_5_0";
+		const std::wstring absShaderPath = ResolveShaderPath(fileName);
 
 		ID3DBlob* errorBlob = nullptr;
 		ID3DBlob* shaderBlob = nullptr;
 		HRESULT hr = D3DCompileFromFile(
-			fileName.c_str(),
+			absShaderPath.c_str(),
 			defines.data(),
 			D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			entryPoint.c_str(),
@@ -205,10 +208,6 @@ DXCompiler::DXCompiler()
 {
 }
 
-DXCompiler::~DXCompiler()
-{
-}
-
 void DXCompiler::Initialize()
 {
 	assert(s_Instance == nullptr);
@@ -218,4 +217,24 @@ void DXCompiler::Initialize()
 void DXCompiler::Destory()
 {
 	s_Instance.reset();
+}
+
+std::wstring DXCompiler::ResolveShaderPath(const std::wstring& shader) const
+{
+	namespace fs = std::filesystem;
+	for (const fs::path& path : m_SearchPaths)
+	{
+		fs::path absPath = path / shader;
+		if (fs::exists(absPath))
+		{
+			return absPath.make_preferred();
+		}
+	}
+
+	std::string error = "Could not find shader \"";
+	error += std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(shader);
+	error += "\"";
+	throw std::runtime_error(error.c_str());
+
+	return std::wstring();
 }

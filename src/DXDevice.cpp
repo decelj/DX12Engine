@@ -223,6 +223,18 @@ DescriptorHandleWithIdx DXDevice::CreateRTVHandle(ID3D12Resource* renderTarget)
 	return handle;
 }
 
+DescriptorHandleWithIdx DXDevice::CreateCBVHandle(ID3D12Resource* constantBuffer)
+{
+	D3D12_CONSTANT_BUFFER_VIEW_DESC desc = {};
+	desc.BufferLocation = constantBuffer->GetGPUVirtualAddress();
+	desc.SizeInBytes = (uint32_t)constantBuffer->GetDesc().Width;
+
+	DescriptorHandleWithIdx handle = m_SRVHeap->AllocateHandle();
+	m_Device->CreateConstantBufferView(&desc, handle.cpuHandle);
+
+	return handle;
+}
+
 ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params)
 {
 	D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -241,7 +253,7 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	return rootSig;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState)
+ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Format = format;
@@ -250,7 +262,7 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	desc.MipLevels = 1;
 	desc.DepthOrArraySize = depth;
 	desc.SampleDesc.Count = 1;
-	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	desc.Flags = static_cast<D3D12_RESOURCE_FLAGS>(static_cast<uint32_t>(flags) & 0xFFFF);
 
 	switch (dimension)
 	{
@@ -271,9 +283,18 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	}
 
 	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(ResourceFlags::CPUMappable))
+	{
+		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+		heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	}
+	else
+	{
+		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	}
 
 	ID3D12Resource* resource = nullptr;
 	ThrowIfFailed(

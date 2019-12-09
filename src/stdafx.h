@@ -1,5 +1,7 @@
 #pragma once
 
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+
 #include <SDKDDKVer.h>
 
 #define WIN32_LEAN_AND_MEAN

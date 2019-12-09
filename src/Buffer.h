@@ -18,3 +18,25 @@ public:
 private:
 	D3D12_VERTEX_BUFFER_VIEW	m_View;
 };
+
+
+class ConstantBuffer : public Resource
+{
+public:
+	ConstantBuffer(size_t size);
+	ConstantBuffer(uint32_t size);
+	ConstantBuffer(const ConstantBuffer& other) = delete;
+	~ConstantBuffer();
+
+	const DescriptorHandle& CBVHandle() const { return m_CBVHandle; }
+
+	template<typename T>
+	void SetData(uint32_t offset, const T& data)
+	{
+		std::memcpy(m_Data + offset, reinterpret_cast<const void*>(&data), sizeof(T));
+	}
+
+private:
+	DescriptorHandleWithIdx		m_CBVHandle;
+	uint8_t*					m_Data;
+};

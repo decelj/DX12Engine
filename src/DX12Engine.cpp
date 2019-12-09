@@ -43,8 +43,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	Window window;
 	DXDevice::InitFromWindow(window);
-	DXCompiler::Initialize();
 	window.Show(nCmdShow);
+
+	DXCompiler::Initialize();
+	DXCompiler::Instance().AddSearchPath(L"src/Shaders");
 
 	MSG msg = { 0 };
 	{
@@ -65,9 +67,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		float aspect = (float)window.Width() / (float)window.Height();
 		Vertex triangleVertexData[] =
 		{
-			{  0.0f ,  0.25f * aspect, 0.0f, 1.0f, 1.0f },
-			{  0.25f, -0.25f * aspect, 0.0f, 1.0f, 0.0f },
-			{ -0.25f, -0.25f * aspect, 0.0f, 0.0f, 1.0f }
+			{  0.0f ,  0.25f, 0.0f, 1.0f, 1.0f },
+			{  0.25f, -0.25f, 0.0f, 1.0f, 0.0f },
+			{ -0.25f, -0.25f, 0.0f, 0.0f, 1.0f }
 		};
 
 		VertexBuffer triVerts(DXGI_FORMAT_UNKNOWN, sizeof(triangleVertexData), sizeof(Vertex));
@@ -80,38 +82,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		cmdList.End();
 		cmdList.Submit();
 
-		const std::string kShader = "struct PSInput \
-		{ \
-			float4 position : SV_POSITION; \
-			float2 uv : TEXCOORD; \
-		}; \
-\
-		Texture2D g_texture : register(t0); \
-		SamplerState g_sampler : register(s0); \
-\
-		PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD) \
-		{ \
-			PSInput result; \
-\
-			result.position = position; \
-			result.uv = uv; \
-\
-			return result; \
-		}\
-\
-		float4 PSMain(PSInput input) : SV_TARGET \
-		{ \
-			return float4(input.uv.x, input.uv.y, 0, 1); \
-		}";
-
-		ReleasedUniquePtr<ID3DBlob> vertexShader(DXCompiler::Instance().CompileShader(kShader.c_str(), "VSMain", "vs", {}));
-		ReleasedUniquePtr<ID3DBlob> pixelShader(DXCompiler::Instance().CompileShader(kShader.c_str(), "PSMain", "ps", {}));
+		ReleasedUniquePtr<ID3DBlob> vertexShader(DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "VSMain", "vs", {}));
+		ReleasedUniquePtr<ID3DBlob> pixelShader(DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "PSMain", "ps", {}));
 
 		ReleasedUniquePtr<ID3D12PipelineState> pso = nullptr;
 		ReleasedUniquePtr<ID3D12RootSignature> rootSig = nullptr;
 
 		{
 			RootSignatureBuilder rootBuilder;
+			rootBuilder.SetCBV(0, 0, 0);
 			rootSig.reset(rootBuilder.Build(DXDevice::Instance()));
 		}
 
@@ -129,6 +108,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			pso.reset(psoBuilder.Build(DXDevice::Instance()));
 		}
 
+		struct FrameConstants
+		{
+			float aspect;
+			glm::vec2 offset;
+			float padding;
+		};
+
+		std::vector<std::unique_ptr<ConstantBuffer>> frameConstantBuffers(2);
+		frameConstantBuffers[0].reset(new ConstantBuffer(sizeof(FrameConstants)));
+		frameConstantBuffers[1].reset(new ConstantBuffer(sizeof(FrameConstants)));
+
+		FrameConstants frameConsts = {};
 		uint32_t frame = 0;
 		while (msg.message != WM_QUIT)
 		{
@@ -140,7 +131,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			else
 			{
 				std::unique_ptr<RenderTarget>& backBuffer = backBuffers[frame & 0x1];
+				std::unique_ptr<ConstantBuffer>& frameConstBuffer = frameConstantBuffers[frame & 0x1];
 				std::array<float, 4u> clearColor = { 0.f, 0.f, 0.f, 0.f };
+
+				frameConsts.aspect = aspect;
+				frameConsts.offset.x = std::fabsf(std::sinf((float)frame / 1024.f));
+				frameConsts.offset.y = std::fabsf(std::cosf((float)frame / 1024.f));
+				frameConstBuffer->SetData(0, frameConsts);
 
 				cmdList.Begin();
 
@@ -154,6 +151,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 				cmdList.Native()->OMSetRenderTargets(1, &backBuffer->RTVHandle().cpuHandle, true, nullptr);
 				cmdList.Native()->SetGraphicsRootSignature(rootSig.get());
+				cmdList.Native()->SetGraphicsRootConstantBufferView(0, frameConstBuffer->GetGPUAddress());
 				cmdList.Native()->SetPipelineState(pso.get());
 				cmdList.Native()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				cmdList.Native()->IASetVertexBuffers(0, 1, &triVerts.View());

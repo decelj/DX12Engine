@@ -12,6 +12,9 @@
     <Filter Include="Header Files\glm">
       <UniqueIdentifier>{2265bd94-b650-4017-906d-3fb836c9696f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{490f3681-e56b-4b20-b9cc-a1dd4612378d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DX12Engine.cpp">
@@ -556,6 +559,9 @@
     <ClInclude Include="src\glm\gtx\wrap.hpp">
       <Filter>Header Files\glm</Filter>
     </ClInclude>
+    <ClInclude Include="src\Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\glm\gtc\bitfield.inl">
@@ -885,5 +891,10 @@
     <None Include="src\glm\gtx\wrap.inl">
       <Filter>Header Files\glm</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\Shaders\Basic.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
