@@ -12,6 +12,7 @@
 #include "PSOBuilder.h"
 #include "RootSignatureBuilder.h"
 #include "Buffer.h"
+#include "Camera.h"
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -50,6 +51,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	MSG msg = { 0 };
 	{
+		Camera cam(window.Width(), window.Height(), 50.f, 100.f);
+		cam.LookAt({ 0.f, 0.f, -1.f }, { 0.f, 0.f, 0.f });
+
 		std::vector<std::unique_ptr<RenderTarget>> backBuffers = DXDevice::Instance().CreateSwapChainTargets();
 		DXCommandList cmdList(CommandType::GRAPHICS);
 		UploadManager uploadMngr;
@@ -87,6 +91,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		cmdList.Begin();
 		triVerts.TransitionTo(ResourceState::VertexAndConstantBuffer, cmdList);
+		triIndicies.TransitionTo(ResourceState::IndexBuffer, cmdList);
 		cmdList.End();
 		cmdList.Submit();
 
@@ -118,6 +123,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		struct FrameConstants
 		{
+			glm::mat4 view;
+			glm::mat4 proj;
+			glm::mat4 viewProj;
 			float aspect;
 			glm::vec2 offset;
 			float padding;
@@ -127,6 +135,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		frameConstantBuffers[0].reset(new ConstantBuffer(sizeof(FrameConstants)));
 		frameConstantBuffers[1].reset(new ConstantBuffer(sizeof(FrameConstants)));
 
+		constexpr std::array<float, 4u> clearColor = { 0.f, 0.f, 0.f, 0.f };
 		FrameConstants frameConsts = {};
 		uint32_t frame = 0;
 		while (msg.message != WM_QUIT)
@@ -140,8 +149,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			{
 				std::unique_ptr<RenderTarget>& backBuffer = backBuffers[frame & 0x1];
 				std::unique_ptr<ConstantBuffer>& frameConstBuffer = frameConstantBuffers[frame & 0x1];
-				std::array<float, 4u> clearColor = { 0.f, 0.f, 0.f, 0.f };
 
+				cam.LookAt({ std::sinf((float)frame / 2000.f), 0.f, -1.f }, { 0.f, 0.f, 0.f });
+				frameConsts.view = cam.View();
+				frameConsts.proj = cam.Proj();
+				frameConsts.viewProj = cam.Proj() * cam.View();
 				frameConsts.aspect = aspect;
 				frameConsts.offset.x = std::fabsf(std::sinf((float)frame / 1024.f));
 				frameConsts.offset.y = std::fabsf(std::cosf((float)frame / 1024.f));

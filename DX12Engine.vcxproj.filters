@@ -68,6 +68,9 @@
     <ClCompile Include="src\glm\detail\glm.cpp">
       <Filter>Header Files\glm</Filter>
     </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DX12Engine.h">
@@ -560,6 +563,9 @@
       <Filter>Header Files\glm</Filter>
     </ClInclude>
     <ClInclude Include="src\Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

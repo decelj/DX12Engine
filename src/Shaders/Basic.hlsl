@@ -6,6 +6,9 @@ struct PSInput
 
 cbuffer Constants : register(b0)
 {
+	float4x4 cView;
+	float4x4 cProj;
+	float4x4 cViewProj;
 	float  cAspect;
 	float2 cOffset;
 	float  cPadding;
@@ -18,8 +21,7 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
 {
 	PSInput result;
 
-	result.position = position;
-	result.position.xy *= cAspect;
+	result.position = mul(cViewProj, position);
 	result.uv = (uv.xy + cOffset) * 0.5f;
 
 	return result;
