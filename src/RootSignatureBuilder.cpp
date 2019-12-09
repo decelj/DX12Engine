@@ -25,11 +25,11 @@ void RootSignatureBuilder::SetConstant(uint32_t slot, uint32_t reg, uint32_t spa
 	m_Valid[slot] = true;
 }
 
-ID3D12RootSignature* RootSignatureBuilder::Build(DXDevice& device)
+ID3D12RootSignature* RootSignatureBuilder::Build()
 {
 	assert(m_Valid.count() == m_Parameters.size());
 
-	return device.CreateRootSignature(m_Parameters);
+	return DXDevice::Instance().CreateRootSignature(m_Parameters);
 }
 
 void RootSignatureBuilder::SetDescriptor(D3D12_ROOT_PARAMETER_TYPE type, uint32_t slot, uint32_t reg, uint32_t space)

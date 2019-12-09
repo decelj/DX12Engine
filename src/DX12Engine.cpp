@@ -91,7 +91,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			RootSignatureBuilder rootBuilder;
 			rootBuilder.SetCBV(0, 0, 0);
-			rootSig.reset(rootBuilder.Build(DXDevice::Instance()));
+			rootSig.reset(rootBuilder.Build());
 		}
 
 		{
@@ -105,7 +105,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, u)}
 				});
 			psoBuilder.SetRTVFormats<1>({ DXGI_FORMAT_R8G8B8A8_UNORM });
-			pso.reset(psoBuilder.Build(DXDevice::Instance()));
+			pso.reset(psoBuilder.Build());
 		}
 
 		struct FrameConstants

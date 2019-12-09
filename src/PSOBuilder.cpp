@@ -7,13 +7,15 @@
 #include <iterator>
 
 PSOBuilder::PSOBuilder()
-	: m_VertexShader(nullptr)
+	: m_RootSignature(nullptr)
+	, m_VertexShader(nullptr)
 	, m_PixelShader(nullptr)
 	, m_ComputeShader(nullptr)
+	, m_RTVFormats({})
 {
 }
 
-ID3D12PipelineState* PSOBuilder::Build(DXDevice& device)
+ID3D12PipelineState* PSOBuilder::Build()
 {
 	if (!m_ComputeShader)
 	{
@@ -54,7 +56,7 @@ ID3D12PipelineState* PSOBuilder::Build(DXDevice& device)
 		desc.SampleDesc.Count = 1u;
 		desc.SampleMask = UINT32_MAX;
 
-		return device.CreatePSO(desc);
+		return DXDevice::Instance().CreatePSO(desc);
 	}
 	else
 	{

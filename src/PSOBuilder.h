@@ -27,22 +27,16 @@ public:
 
 	void AppendInputElements(const std::vector<VertexInputElement>& elems)
 	{
-		for (const VertexInputElement& elem : elems)
-		{
-			m_InputElements.emplace_back(elem);
-		}
+		std::copy(elems.begin(), elems.end(), std::back_inserter(m_InputElements));
 	}
 
 	template<size_t ASize>
 	void SetRTVFormats(const std::array<DXGI_FORMAT, ASize>& formats)
 	{
-		for (size_t i = 0u; i < ASize; ++i)
-		{
-			m_RTVFormats[i] = formats[i];
-		}
+		std::copy(formats.begin(), formats.end(), m_RTVFormats.begin());
 	}
 
-	ID3D12PipelineState* Build(DXDevice& device);
+	ID3D12PipelineState* Build();
 
 private:
 	ID3D12RootSignature*	m_RootSignature;

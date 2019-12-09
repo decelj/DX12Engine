@@ -18,7 +18,7 @@ public:
 	void SetCBV(uint32_t slot, uint32_t reg, uint32_t space) { SetDescriptor(D3D12_ROOT_PARAMETER_TYPE_CBV, slot, reg, space); }
 	void SetConstant(uint32_t slot, uint32_t reg, uint32_t space, uint32_t count);
 
-	ID3D12RootSignature* Build(DXDevice& device);
+	ID3D12RootSignature* Build();
 
 private:
 	void SetDescriptor(D3D12_ROOT_PARAMETER_TYPE type, uint32_t slot, uint32_t reg, uint32_t space);
