@@ -142,6 +142,7 @@ namespace Impl
 			}
 
 			return nullptr;
+			ThrowIfFailed(hr);
 		}
 
 		if (errorBlob)
@@ -191,6 +192,7 @@ namespace Impl
 				errorBlob->Release();
 			}
 
+			ThrowIfFailed(hr);
 			return nullptr;
 		}
 
@@ -234,7 +236,7 @@ std::wstring DXCompiler::ResolveShaderPath(const std::wstring& shader) const
 	std::string error = "Could not find shader \"";
 	error += std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(shader);
 	error += "\"";
-	throw std::runtime_error(error.c_str());
+	throw std::runtime_error(error);
 
 	return std::wstring();
 }
