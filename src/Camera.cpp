@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #include "Camera.h"
+#include "DXCommandList.h"
+
+#include <d3d12.h>
+
 
 Camera::Camera(uint32_t width, uint32_t height, float fov, float farClip)
 	: m_View()
@@ -20,4 +24,10 @@ void Camera::SetPosition(const glm::vec3& pos)
 void Camera::LookAt(const glm::vec3& pos, const glm::vec3& point)
 {
 	m_View = glm::lookAt(pos, point, glm::vec3(0.f, 1.f, 0.f));
+}
+
+void Camera::SetViewport(DXCommandList& cmdList) const
+{
+	D3D12_VIEWPORT vp = { 0.f, 0.f, (float)m_ViewWidth, (float)m_ViewHeight, 0.f, 1.f };
+	cmdList.Native()->RSSetViewports(1, &vp);
 }

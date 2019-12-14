@@ -161,8 +161,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 				cmdList.Begin();
 
-				D3D12_VIEWPORT vp = { 0.f, 0.f, (float)window.Width(), (float)window.Height(), 0.f, 1.f };
-				cmdList.Native()->RSSetViewports(1, &vp);
+				cam.SetViewport(cmdList);
+
 				D3D12_RECT scissorRect = { 0, 0, (LONG)window.Width(), (LONG)window.Height() };
 				cmdList.Native()->RSSetScissorRects(1, &scissorRect);
 

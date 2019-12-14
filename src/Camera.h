@@ -2,6 +2,8 @@
 
 #include "stdafx.h"
 
+class DXCommandList;
+
 class Camera
 {
 public:
@@ -26,6 +28,8 @@ public:
 	const glm::vec4& Position() const { return m_View[3]; }
 	const glm::mat4& View() const { return m_View; }
 	const glm::mat4& Proj() const { return m_Proj; }
+
+	void SetViewport(DXCommandList& cmdList) const;
 
 private:
 	glm::mat4	m_View;
