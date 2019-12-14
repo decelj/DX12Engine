@@ -9,7 +9,7 @@ Camera::Camera(uint32_t width, uint32_t height, float fov, float farClip)
 	, m_ViewHeight(height)
 	, m_FarClip(farClip)
 {
-	m_Proj = glm::perspectiveFov<float>(m_FOV, m_ViewHeight, m_ViewHeight, 0.1f, m_FarClip);
+	m_Proj = glm::perspectiveFov(m_FOV, (float)m_ViewHeight, (float)m_ViewHeight, 0.1f, m_FarClip);
 }
 
 void Camera::SetPosition(const glm::vec3& pos)
