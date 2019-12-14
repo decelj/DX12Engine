@@ -30,6 +30,7 @@ public:
 	ID3D12Fence* CreateFence();
 	ID3D12DescriptorHeap* CreateDescriptorHeap(uint32_t* outHandleSize, D3D12_DESCRIPTOR_HEAP_TYPE heapType, uint32_t maxCount);
 	DescriptorHandleWithIdx CreateRTVHandle(ID3D12Resource* renderTarget);
+	DescriptorHandleWithIdx CreateDSVHandle(ID3D12Resource* depthBuffer);
 	DescriptorHandleWithIdx CreateCBVHandle(ID3D12Resource* constantBuffer);
 	ID3D12RootSignature* CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params);
 	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags);
@@ -42,6 +43,7 @@ public:
 	void Present() { m_SwapChain->Present(0, 0); }
 	void ReleaseRTVDescriptor(DescriptorHandleWithIdx& handle) { m_RTVHeap->FreeHandle(handle); }
 	void ReleaseSRVDescriptor(DescriptorHandleWithIdx& handle) { m_SRVHeap->FreeHandle(handle); }
+	void ReleaseDSVDescriptor(DescriptorHandleWithIdx& handle) { m_DSVHeap->FreeHandle(handle); }
 
 	std::vector<std::unique_ptr<RenderTarget>> CreateSwapChainTargets();
 
@@ -58,4 +60,5 @@ private:
 
 	std::unique_ptr<DescriptorHeap>			m_SRVHeap;
 	std::unique_ptr<DescriptorHeap>			m_RTVHeap;
+	std::unique_ptr<DescriptorHeap>			m_DSVHeap;
 };

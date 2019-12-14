@@ -24,6 +24,7 @@ public:
 	void SetVertexShader(ID3DBlob* shader)					{ m_VertexShader = shader; }
 	void SetPixelShader(ID3DBlob* shader)					{ m_PixelShader = shader; }
 	void SetComputeShader(ID3DBlob* shader)					{ m_ComputeShader = shader; }
+	void SetDSVFormat(DXGI_FORMAT dsvFormat)				{ m_DSVFormat = dsvFormat; }
 
 	void AppendInputElements(const std::vector<VertexInputElement>& elems)
 	{
@@ -46,4 +47,5 @@ private:
 
 	std::vector<VertexInputElement>	m_InputElements;
 	std::array<DXGI_FORMAT, 8u>		m_RTVFormats;
+	DXGI_FORMAT						m_DSVFormat;
 };

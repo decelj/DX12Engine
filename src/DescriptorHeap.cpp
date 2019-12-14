@@ -19,6 +19,9 @@ DescriptorHeap::DescriptorHeap(DXDevice& device, DescriptorType type, uint32_t m
 	case DescriptorType::SRV:
 		dxType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		break;
+	case DescriptorType::DSV:
+		dxType = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		break;
 	default:
 		assert(0);
 		break;

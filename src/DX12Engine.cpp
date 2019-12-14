@@ -51,6 +51,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	MSG msg = { 0 };
 	{
+		DepthTarget depthBuffer(DXGI_FORMAT_D24_UNORM_S8_UINT, window.Width(), window.Height());
+
 		Camera cam(window.Width(), window.Height(), 50.f, 100.f);
 		cam.LookAt({ 0.f, 0.f, -1.f }, { 0.f, 0.f, 0.f });
 
@@ -118,6 +120,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, u)}
 				});
 			psoBuilder.SetRTVFormats<1>({ DXGI_FORMAT_R8G8B8A8_UNORM });
+			psoBuilder.SetDSVFormat(DXGI_FORMAT_D24_UNORM_S8_UINT);
 			pso.reset(psoBuilder.Build());
 		}
 
@@ -168,8 +171,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 				backBuffer->TransitionTo(ResourceState::RenderTarget, cmdList);
 				cmdList.Native()->ClearRenderTargetView(backBuffer->RTVHandle().cpuHandle, clearColor.data(), 0, nullptr);
-
-				cmdList.Native()->OMSetRenderTargets(1, &backBuffer->RTVHandle().cpuHandle, true, nullptr);
+				cmdList.Native()->ClearDepthStencilView(depthBuffer.DSVHandle().cpuHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+				cmdList.Native()->OMSetRenderTargets(1, &backBuffer->RTVHandle().cpuHandle, true, &depthBuffer.DSVHandle().cpuHandle);
+				
 				cmdList.Native()->SetGraphicsRootSignature(rootSig.get());
 				cmdList.Native()->SetGraphicsRootConstantBufferView(0, frameConstBuffer->GetGPUAddress());
 				cmdList.Native()->SetPipelineState(pso.get());

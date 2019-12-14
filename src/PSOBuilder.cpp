@@ -12,6 +12,7 @@ PSOBuilder::PSOBuilder()
 	, m_PixelShader(nullptr)
 	, m_ComputeShader(nullptr)
 	, m_RTVFormats({})
+	, m_DSVFormat(DXGI_FORMAT_UNKNOWN)
 {
 }
 
@@ -53,8 +54,17 @@ ID3D12PipelineState* PSOBuilder::Build()
 			}
 		);
 		std::copy(m_RTVFormats.begin(), m_RTVFormats.end(), desc.RTVFormats);
+		desc.DSVFormat = m_DSVFormat;
 		desc.SampleDesc.Count = 1u;
 		desc.SampleMask = UINT32_MAX;
+
+		if (m_DSVFormat != DXGI_FORMAT_UNKNOWN)
+		{
+			desc.DepthStencilState.DepthEnable = true;
+			desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+			desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+
+		}
 
 		return DXDevice::Instance().CreatePSO(desc);
 	}

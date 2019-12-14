@@ -8,7 +8,8 @@ class DXDevice;
 enum class DescriptorType
 {
 	RTV,
-	SRV
+	SRV,
+	DSV
 };
 
 struct DescriptorHandle

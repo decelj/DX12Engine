@@ -28,3 +28,14 @@ RenderTarget::~RenderTarget()
 		m_Resource.release();
 	}
 }
+
+DepthTarget::DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height)
+	: Resource(ResourceDimension::Texture2D, format, width, height, 1, ResourceState::DepthWrite, ResourceFlags::DepthStencil)
+{
+	m_DSVHandle = DXDevice::Instance().CreateDSVHandle(m_Resource.get());
+}
+
+DepthTarget::~DepthTarget()
+{
+	DXDevice::Instance().ReleaseDSVDescriptor(m_DSVHandle);
+}

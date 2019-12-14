@@ -117,6 +117,7 @@ DXDevice::DXDevice(const Window& window)
 	constexpr uint32_t kMaxHandles = 32u; // TODO: Fix me!
 	m_RTVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::RTV, kMaxHandles);
 	m_SRVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::SRV, kMaxHandles);
+	m_DSVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::DSV, kMaxHandles);
 }
 
 void DXDevice::InitFromWindow(const Window& window)
@@ -219,6 +220,32 @@ DescriptorHandleWithIdx DXDevice::CreateRTVHandle(ID3D12Resource* renderTarget)
 
 	DescriptorHandleWithIdx handle = m_RTVHeap->AllocateHandle();
 	m_Device->CreateRenderTargetView(renderTarget, &desc, handle.cpuHandle);
+
+	return handle;
+}
+
+DescriptorHandleWithIdx DXDevice::CreateDSVHandle(ID3D12Resource* depthBuffer)
+{
+	D3D12_RESOURCE_DESC resDesc = depthBuffer->GetDesc();
+	D3D12_DEPTH_STENCIL_VIEW_DESC desc = {};
+	desc.Format = resDesc.Format;
+
+#define CASE(_type) \
+	case D3D12_RESOURCE_DIMENSION_##_type: \
+	desc.ViewDimension = D3D12_DSV_DIMENSION_##_type; break
+
+	switch (resDesc.Dimension)
+	{
+		CASE(TEXTURE1D);
+		CASE(TEXTURE2D);
+	default:
+		assert(false);
+		break;
+	}
+#undef CASE
+
+	DescriptorHandleWithIdx handle = m_DSVHeap->AllocateHandle();
+	m_Device->CreateDepthStencilView(depthBuffer, &desc, handle.cpuHandle);
 
 	return handle;
 }

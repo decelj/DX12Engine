@@ -21,3 +21,16 @@ private:
 
 	const bool							m_IsOwner;
 };
+
+class DepthTarget : public Resource
+{
+public:
+	DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height);
+	DepthTarget(const DepthTarget& other) = delete;
+	~DepthTarget();
+
+	const DescriptorHandle& DSVHandle() const { return m_DSVHandle; }
+
+private:
+	DescriptorHandleWithIdx				m_DSVHandle;
+};
