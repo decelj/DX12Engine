@@ -13,6 +13,8 @@
 #include "RootSignatureBuilder.h"
 #include "Buffer.h"
 #include "Camera.h"
+#include "../OBJLoader/OBJLoader.h"
+#include "Utils.h"
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -88,6 +90,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		IndexBuffer triIndicies(_countof(triangleIndicies));
 		uploadMngr.UploadDataTo((void*)triangleIndicies, sizeof(triangleIndicies), triIndicies);
 
+		HighResTimer timer;
+		timer.Start();
+		std::vector<OBJLoader::Vertex> bunnyVertexData;
+		std::vector<uint32_t> bunnyIndiciesData;
+		OBJLoader::LoadFile(L"models/bunny.obj", &bunnyVertexData, &bunnyIndiciesData);
+		{
+			std::string loadTime = "Loaded bunny.obj in " + timer.ElapsedAsString(timer.Elapsed()) + "\n";
+			OutputDebugStringA(loadTime.c_str());
+		}
+
+		VertexBuffer bunnyVerts(sizeof(OBJLoader::Vertex) * bunnyVertexData.size(), sizeof(OBJLoader::Vertex));
+		IndexBuffer bunnyIdicies(bunnyIndiciesData.size());
+		uploadMngr.UploadDataTo(bunnyVertexData.data(), bunnyVertexData.size() * sizeof(OBJLoader::Vertex), bunnyVerts);
+		uploadMngr.UploadDataTo(bunnyIndiciesData.data(), bunnyIndiciesData.size() * sizeof(uint32_t), bunnyIdicies);
+		bunnyIndiciesData.clear();
+		bunnyVertexData.clear();
+
 		uploadMngr.MakeAllResident();
 		uploadMngr.WaitForUpload();
 
@@ -100,7 +119,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ReleasedUniquePtr<ID3DBlob> vertexShader(DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "VSMain", "vs", {}));
 		ReleasedUniquePtr<ID3DBlob> pixelShader(DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "PSMain", "ps", {}));
 
+		ReleasedUniquePtr<ID3DBlob> vertexShaderWNormal(
+			DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "VSMain", "vs", { {"HAS_NORMAL", "1"}, {} }));
+		ReleasedUniquePtr<ID3DBlob> pixelShaderWNormal(
+			DXCompiler::Instance().CompileShaderFromFile(L"Basic.hlsl", "PSMain", "ps", { {"HAS_NORMAL", "1"}, {} }));
+
 		ReleasedUniquePtr<ID3D12PipelineState> pso = nullptr;
+		ReleasedUniquePtr<ID3D12PipelineState> psoNormal = nullptr;
 		ReleasedUniquePtr<ID3D12RootSignature> rootSig = nullptr;
 
 		{
@@ -122,6 +147,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			psoBuilder.SetRTVFormats<1>({ DXGI_FORMAT_R8G8B8A8_UNORM });
 			psoBuilder.SetDSVFormat(DXGI_FORMAT_D24_UNORM_S8_UINT);
 			pso.reset(psoBuilder.Build());
+
+			psoBuilder.SetVertexShader(vertexShaderWNormal.get());
+			psoBuilder.SetPixelShader(pixelShaderWNormal.get());
+			psoBuilder.AppendInputElements(
+				{
+					{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0}
+				});
+			psoNormal.reset(psoBuilder.Build());
 		}
 
 		struct FrameConstants
@@ -153,7 +186,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				std::unique_ptr<RenderTarget>& backBuffer = backBuffers[frame & 0x1];
 				std::unique_ptr<ConstantBuffer>& frameConstBuffer = frameConstantBuffers[frame & 0x1];
 
-				cam.LookAt({ std::sinf((float)frame / 2000.f), 0.f, -1.f }, { 0.f, 0.f, 0.f });
+				cam.LookAt(
+					{ 
+						std::sinf((float)frame / 2000.f) * 4.f,
+						1.f,
+						std::cosf((float)frame / 2000.f) * 4.f
+					},
+					{ 0.f, 0.75f, 0.f });
 				frameConsts.view = cam.View();
 				frameConsts.proj = cam.Proj();
 				frameConsts.viewProj = cam.Proj() * cam.View();
@@ -168,6 +207,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 				D3D12_RECT scissorRect = { 0, 0, (LONG)window.Width(), (LONG)window.Height() };
 				cmdList.Native()->RSSetScissorRects(1, &scissorRect);
+				cmdList.Native()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 				backBuffer->TransitionTo(ResourceState::RenderTarget, cmdList);
 				cmdList.Native()->ClearRenderTargetView(backBuffer->RTVHandle().cpuHandle, clearColor.data(), 0, nullptr);
@@ -176,11 +216,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				
 				cmdList.Native()->SetGraphicsRootSignature(rootSig.get());
 				cmdList.Native()->SetGraphicsRootConstantBufferView(0, frameConstBuffer->GetGPUAddress());
+
+#if 0
 				cmdList.Native()->SetPipelineState(pso.get());
-				cmdList.Native()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				cmdList.Native()->IASetVertexBuffers(0, 1, &triVerts.View());
 				cmdList.Native()->IASetIndexBuffer(&triIndicies.View());
 				cmdList.Native()->DrawIndexedInstanced(triIndicies.Count(), 1, 0, 0, 0);
+#endif
+
+				cmdList.Native()->SetPipelineState(psoNormal.get());
+				cmdList.Native()->IASetIndexBuffer(&bunnyIdicies.View());
+				cmdList.Native()->IASetVertexBuffers(0, 1, &bunnyVerts.View());
+				cmdList.Native()->DrawIndexedInstanced(bunnyIdicies.Count(), 1, 0, 0, 0);
 
 				backBuffer->TransitionTo(ResourceState::Present, cmdList);
 				cmdList.End();

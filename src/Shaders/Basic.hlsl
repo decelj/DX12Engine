@@ -1,6 +1,9 @@
 struct PSInput
 {
 	float4 position : SV_POSITION;
+#ifdef HAS_NORMAL
+	float3 normal : NORMAL;
+#endif
 	float2 uv : TEXCOORD;
 };
 
@@ -17,17 +20,34 @@ cbuffer Constants : register(b0)
 Texture2D g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
-PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
+//#define HAS_NORMAL
+
+PSInput VSMain(
+	float3 position : POSITION,
+#ifdef HAS_NORMAL
+	float3 normal : NORMAL,
+#endif
+	float4 uv : TEXCOORD)
 {
 	PSInput result;
 
-	result.position = mul(cViewProj, position);
+	result.position = mul(cViewProj, float4(position, 1.f));
 	result.uv = (uv.xy + cOffset) * 0.5f;
+#ifdef HAS_NORMAL
+	result.normal = mul((float3x3)cView, normal);
+#endif
 
 	return result;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
+#ifdef HAS_NORMAL
+	float3 lightDir = normalize(float3(0.f, 0.2f, 1.f));
+	float lDotN = dot(input.normal, lightDir);
+	float lighting = saturate(lDotN) * 0.8f + (lDotN + 1.7f) * 0.5f * 0.2f;
+	return float4(lighting, lighting, lighting, 1.f);
+#else
 	return float4(input.uv.x, input.uv.y, 0, 1);
+#endif
 }
