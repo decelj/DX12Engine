@@ -12,12 +12,10 @@ VertexBuffer::VertexBuffer(uint32_t size, uint32_t stride)
 }
 
 IndexBuffer::IndexBuffer(uint32_t count)
-	: Resource(ResourceDimension::Linear, DXGI_FORMAT_UNKNOWN, 2u * count, 1, 1, ResourceState::Common, ResourceFlags::NonShaderResource)
+	: Resource(ResourceDimension::Linear, DXGI_FORMAT_UNKNOWN, 4u * count, 1, 1, ResourceState::Common, ResourceFlags::NonShaderResource)
 {
-	assert(count < 0xFFFFu);
-
-	m_View.Format = DXGI_FORMAT_R16_UINT;
-	m_View.SizeInBytes = 2u * count;
+	m_View.Format = DXGI_FORMAT_R32_UINT;
+	m_View.SizeInBytes = 4u * count;
 	m_View.BufferLocation = m_Resource->GetGPUVirtualAddress();
 }
 

@@ -79,12 +79,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		VertexBuffer triVerts(sizeof(triangleVertexData), sizeof(Vertex));
 		uploadMngr.UploadDataTo((void*)triangleVertexData, sizeof(triangleVertexData), triVerts);
 
-		uint16_t triangleIndicies[] =
+		uint32_t triangleIndicies[] =
 		{
 			0, 1, 2
 		};
 		IndexBuffer triIndicies(_countof(triangleIndicies));
-		uploadMngr.UploadDataTo((void*)triangleIndicies, 2u * 3u, triIndicies);
+		uploadMngr.UploadDataTo((void*)triangleIndicies, sizeof(triangleIndicies), triIndicies);
 
 		uploadMngr.MakeAllResident();
 		uploadMngr.WaitForUpload();

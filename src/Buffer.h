@@ -21,6 +21,7 @@ private:
 };
 
 
+// Assumes uint32 indicies
 class IndexBuffer : public Resource
 {
 public:
@@ -29,7 +30,7 @@ public:
 	~IndexBuffer() = default;
 
 	const D3D12_INDEX_BUFFER_VIEW& View() const { return m_View; }
-	uint32_t Count() const { return m_View.SizeInBytes >> 1u; }
+	uint32_t Count() const { return m_View.SizeInBytes >> 2u; }
 
 private:
 	D3D12_INDEX_BUFFER_VIEW		m_View;
