@@ -4,7 +4,7 @@
 #include "DXCommandList.h"
 #include "HRException.h"
 
-Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags)
+Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags, const glm::vec4& clearColor)
 	: m_Resource(nullptr)
 	, m_CurrentState(initialState)
 {
@@ -12,7 +12,8 @@ Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t wid
 	m_Resource.reset(
 		device.CreateCommitedResource(
 			dimension, format, width, height, depth,
-			static_cast<D3D12_RESOURCE_STATES>(initialState), flags
+			static_cast<D3D12_RESOURCE_STATES>(initialState), flags,
+			clearColor
 		));
 }
 

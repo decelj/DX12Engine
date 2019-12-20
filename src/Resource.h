@@ -30,7 +30,7 @@ enum class ResourceFlags : uint32_t
 class Resource
 {
 public:
-	Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags);
+	Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags, const glm::vec4& clearColor = {});
 	~Resource() = default;
 
 	void TransitionTo(ResourceState destState, DXCommandList& cmdList);

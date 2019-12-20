@@ -280,7 +280,7 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	return rootSig;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags)
+ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Format = format;
@@ -291,6 +291,9 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	desc.SampleDesc.Count = 1;
 	desc.Flags = static_cast<D3D12_RESOURCE_FLAGS>(static_cast<uint32_t>(flags) & 0xFFFF);
 
+	D3D12_CLEAR_VALUE* clearValuePtr = nullptr;
+	D3D12_CLEAR_VALUE clearValue = {};
+
 	switch (dimension)
 	{
 	case ResourceDimension::Linear:
@@ -300,6 +303,20 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 		break;
 	case ResourceDimension::Texture2D:
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+		clearValuePtr = &clearValue;
+		clearValue.Format = format;
+		if (	format == DXGI_FORMAT_D24_UNORM_S8_UINT
+			||	format == DXGI_FORMAT_D16_UNORM
+			||	format == DXGI_FORMAT_D32_FLOAT)
+		{
+			clearValue.DepthStencil.Depth = clearColor.r;
+		}
+		else
+		{
+			std::copy((float*)&clearColor[0], (float*)&clearColor[3], clearValue.Color);
+		}
+
 		break;
 	case ResourceDimension::Texture3D:
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
@@ -327,7 +344,7 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	ThrowIfFailed(
 		m_Device->CreateCommittedResource(
 			&heapProps, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
-			&desc, initialState, nullptr, IID_PPV_ARGS(&resource)));
+			&desc, initialState, clearValuePtr, IID_PPV_ARGS(&resource)));
 
 	return resource;
 }

@@ -3,8 +3,8 @@
 #include "DXDevice.h"
 #include "DXCommandList.h"
 
-RenderTarget::RenderTarget(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth)
-	: Resource(dimension, format, width, height, depth, ResourceState::Common, ResourceFlags::RenderTarget)
+RenderTarget::RenderTarget(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, const glm::vec4& clearColor)
+	: Resource(dimension, format, width, height, depth, ResourceState::Common, ResourceFlags::RenderTarget, clearColor)
 	, m_IsOwner(true)
 {
 	m_RTVHandle = DXDevice::Instance().CreateRTVHandle(m_Resource.get());
@@ -29,8 +29,8 @@ RenderTarget::~RenderTarget()
 	}
 }
 
-DepthTarget::DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height)
-	: Resource(ResourceDimension::Texture2D, format, width, height, 1, ResourceState::DepthWrite, ResourceFlags::DepthStencil)
+DepthTarget::DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height, float clearValue)
+	: Resource(ResourceDimension::Texture2D, format, width, height, 1, ResourceState::DepthWrite, ResourceFlags::DepthStencil, glm::vec4(clearValue))
 {
 	m_DSVHandle = DXDevice::Instance().CreateDSVHandle(m_Resource.get());
 }

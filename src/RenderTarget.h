@@ -9,7 +9,7 @@
 class RenderTarget : public Resource
 {
 public:
-	RenderTarget(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth);
+	RenderTarget(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, const glm::vec4& clearColor);
 	RenderTarget(ID3D12Resource* texture, ResourceState currentState);
 	RenderTarget(const RenderTarget& other) = delete;
 	~RenderTarget();
@@ -25,7 +25,7 @@ private:
 class DepthTarget : public Resource
 {
 public:
-	DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height);
+	DepthTarget(DXGI_FORMAT format, uint32_t width, uint32_t height, const float clearValue=1.f);
 	DepthTarget(const DepthTarget& other) = delete;
 	~DepthTarget();
 
