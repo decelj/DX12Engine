@@ -871,6 +871,9 @@
     <ClInclude Include="src\glm\fwd.hpp">
       <Filter>Header Files\glm</Filter>
     </ClInclude>
+    <ClInclude Include="src\VertexLayoutMngr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Shaders\Basic.hlsl">

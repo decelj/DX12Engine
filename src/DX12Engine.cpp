@@ -13,8 +13,10 @@
 #include "RootSignatureBuilder.h"
 #include "Buffer.h"
 #include "Camera.h"
-#include "../OBJLoader/OBJLoader.h"
 #include "Utils.h"
+#include "VertexLayoutMngr.h"
+
+#include "../OBJLoader/OBJLoader.h"
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -139,21 +141,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			psoBuilder.SetRootSignature(rootSig.get());
 			psoBuilder.SetPixelShader(pixelShader.get());
 			psoBuilder.SetVertexShader(vertexShader.get());
-			psoBuilder.AppendInputElements(
-				{
-					{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0},
-					{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, u)}
-				});
+			psoBuilder.SetVertexLayout(VertexLayout::PositionUV);
 			psoBuilder.SetRTVFormats<1>({ DXGI_FORMAT_R8G8B8A8_UNORM });
 			psoBuilder.SetDSVFormat(DXGI_FORMAT_D24_UNORM_S8_UINT);
 			pso.reset(psoBuilder.Build());
 
 			psoBuilder.SetVertexShader(vertexShaderWNormal.get());
 			psoBuilder.SetPixelShader(pixelShaderWNormal.get());
-			psoBuilder.AppendInputElements(
-				{
-					{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0}
-				});
+			psoBuilder.SetVertexLayout(VertexLayout::PositionUVNormal);
 			psoNormal.reset(psoBuilder.Build());
 		}
 
@@ -188,9 +183,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 				cam.LookAt(
 					{ 
-						std::sinf((float)frame / 2000.f) * 4.f,
+						0.f,//std::sinf((float)frame / 2000.f) * 4.f,
 						1.f,
-						std::cosf((float)frame / 2000.f) * 4.f
+						4.f,//std::cosf((float)frame / 2000.f) * 4.f
 					},
 					{ 0.f, 0.75f, 0.f });
 				frameConsts.view = cam.View();

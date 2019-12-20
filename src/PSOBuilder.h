@@ -1,18 +1,11 @@
 #pragma once
 
 #include "stdafx.h"
+#include "VertexLayoutMngr.h"
 
 #include <d3d12.h>
+#include <algorithm>
 
-class DXDevice;
-
-struct VertexInputElement
-{
-	const char* m_Semantic;
-	uint32_t	m_SemanticIndex;
-	DXGI_FORMAT	m_Format;
-	uint32_t	m_Offset;
-};
 
 class PSOBuilder
 {
@@ -26,9 +19,25 @@ public:
 	void SetComputeShader(ID3DBlob* shader)					{ m_ComputeShader = shader; }
 	void SetDSVFormat(DXGI_FORMAT dsvFormat)				{ m_DSVFormat = dsvFormat; }
 
-	void AppendInputElements(const std::vector<VertexInputElement>& elems)
+	void SetVertexLayout(VertexLayout layout)
 	{
-		std::copy(elems.begin(), elems.end(), std::back_inserter(m_InputElements));
+		const VertexInputElementArrayView& elements = VertexLayoutMngr::Lookup(layout);
+
+		m_InputElements.clear();
+		m_InputElements.reserve(elements.Count());
+		std::transform(elements.begin(), elements.end(), std::back_inserter(m_InputElements),
+			[](const VertexInputElement& elem)
+			{
+				D3D12_INPUT_ELEMENT_DESC desc = {};
+				desc.Format = elem.m_Format;
+				desc.AlignedByteOffset = elem.m_Offset;
+				desc.InputSlot = 0u;
+				desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+				desc.SemanticName = elem.m_Semantic;
+				desc.SemanticIndex = elem.m_SemanticIndex;
+				desc.InstanceDataStepRate = 0u;
+				return desc;
+			});
 	}
 
 	template<size_t ASize>
@@ -45,7 +54,7 @@ private:
 	ID3DBlob*				m_PixelShader;
 	ID3DBlob*				m_ComputeShader;
 
-	std::vector<VertexInputElement>	m_InputElements;
-	std::array<DXGI_FORMAT, 8u>		m_RTVFormats;
-	DXGI_FORMAT						m_DSVFormat;
+	std::vector<D3D12_INPUT_ELEMENT_DESC>	m_InputElements;
+	std::array<DXGI_FORMAT, 8u>				m_RTVFormats;
+	DXGI_FORMAT								m_DSVFormat;
 };
