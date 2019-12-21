@@ -68,6 +68,9 @@
     <ClCompile Include="src\glm\detail\glm.cpp">
       <Filter>Header Files\glm</Filter>
     </ClCompile>
+    <ClCompile Include="src\Geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DX12Engine.h">
@@ -872,6 +875,9 @@
       <Filter>Header Files\glm</Filter>
     </ClInclude>
     <ClInclude Include="src\VertexLayoutMngr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

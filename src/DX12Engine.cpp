@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "Utils.h"
 #include "VertexLayoutMngr.h"
+#include "Geometry.h"
 
 #include "../OBJLoader/OBJLoader.h"
 
@@ -102,12 +103,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			OutputDebugStringA(loadTime.c_str());
 		}
 
-		VertexBuffer bunnyVerts(sizeof(OBJLoader::Vertex) * bunnyVertexData.size(), sizeof(OBJLoader::Vertex));
-		IndexBuffer bunnyIdicies(bunnyIndiciesData.size());
-		uploadMngr.UploadDataTo(bunnyVertexData.data(), bunnyVertexData.size() * sizeof(OBJLoader::Vertex), bunnyVerts);
-		uploadMngr.UploadDataTo(bunnyIndiciesData.data(), bunnyIndiciesData.size() * sizeof(uint32_t), bunnyIdicies);
-		bunnyIndiciesData.clear();
-		bunnyVertexData.clear();
+		RigidGeometry bunnyGeo(std::move(bunnyVertexData), std::move(bunnyIndiciesData), uploadMngr);
 
 		uploadMngr.MakeAllResident();
 		uploadMngr.WaitForUpload();
@@ -133,6 +129,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			RootSignatureBuilder rootBuilder;
 			rootBuilder.SetCBV(0, 0, 0);
+			rootBuilder.SetCBV(1, 1, 0);
 			rootSig.reset(rootBuilder.Build());
 		}
 
@@ -181,6 +178,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				std::unique_ptr<RenderTarget>& backBuffer = backBuffers[frame & 0x1];
 				std::unique_ptr<ConstantBuffer>& frameConstBuffer = frameConstantBuffers[frame & 0x1];
 
+				bunnyGeo.SetPosition({ std::sinf((float)frame / 2000.f), 0.f, 0.f });
+
 				cam.LookAt(
 					{ 
 						0.f,//std::sinf((float)frame / 2000.f) * 4.f,
@@ -220,9 +219,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 #endif
 
 				cmdList.Native()->SetPipelineState(psoNormal.get());
-				cmdList.Native()->IASetIndexBuffer(&bunnyIdicies.View());
-				cmdList.Native()->IASetVertexBuffers(0, 1, &bunnyVerts.View());
-				cmdList.Native()->DrawIndexedInstanced(bunnyIdicies.Count(), 1, 0, 0, 0);
+				bunnyGeo.Draw(cmdList);
+				bunnyGeo.NextFrame();
 
 				backBuffer->TransitionTo(ResourceState::Present, cmdList);
 				cmdList.End();

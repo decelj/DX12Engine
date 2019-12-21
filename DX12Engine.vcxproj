@@ -27,6 +27,7 @@
     <ClCompile Include="src\DXCompiler.cpp" />
     <ClCompile Include="src\DXDevice.cpp" />
     <ClCompile Include="src\DXFence.cpp" />
+    <ClCompile Include="src\Geometry.cpp" />
     <ClCompile Include="src\glm\detail\glm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -58,6 +59,7 @@
     <ClInclude Include="src\DXCompiler.h" />
     <ClInclude Include="src\DXDevice.h" />
     <ClInclude Include="src\DXFence.h" />
+    <ClInclude Include="src\Geometry.h" />
     <ClInclude Include="src\glm.h" />
     <ClInclude Include="src\glm\common.hpp" />
     <ClInclude Include="src\glm\detail\compute_common.hpp" />

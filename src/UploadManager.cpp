@@ -11,7 +11,7 @@ UploadManager::~UploadManager()
 {
 }
 
-void UploadManager::UploadDataTo(void* data, size_t dataSize, Resource& dest)
+void UploadManager::UploadDataTo(const void* data, size_t dataSize, Resource& dest)
 {
 	if (!m_UploadCommands.IsOpen())
 	{
@@ -43,7 +43,7 @@ void UploadManager::WaitForUpload()
 	m_SubmittedResources.clear();
 }
 
-UploadManager::UploadResource::UploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize)
+UploadManager::UploadResource::UploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize)
 	: m_StagedResource(nullptr)
 {
 	assert(data);

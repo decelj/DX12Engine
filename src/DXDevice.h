@@ -34,7 +34,7 @@ public:
 	DescriptorHandleWithIdx CreateCBVHandle(ID3D12Resource* constantBuffer);
 	ID3D12RootSignature* CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params);
 	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor = {});
-	ID3D12Resource* CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize);
+	ID3D12Resource* CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize);
 	ID3D12PipelineState* CreatePSO(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc);
 	ID3D12PipelineState* CreatePSO(const D3D12_COMPUTE_PIPELINE_STATE_DESC& desc);
 

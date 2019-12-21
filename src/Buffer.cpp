@@ -3,11 +3,11 @@
 #include "DXDevice.h"
 #include "Utils.h"
 
-VertexBuffer::VertexBuffer(uint32_t size, uint32_t stride)
-	: Resource(ResourceDimension::Linear, DXGI_FORMAT_UNKNOWN, size, 1, 1, ResourceState::Common, ResourceFlags::NonShaderResource)
+VertexBuffer::VertexBuffer(uint32_t count, uint32_t vertexSize)
+	: Resource(ResourceDimension::Linear, DXGI_FORMAT_UNKNOWN, count * vertexSize, 1, 1, ResourceState::Common, ResourceFlags::NonShaderResource)
 {
-	m_View.SizeInBytes = size;
-	m_View.StrideInBytes = stride;
+	m_View.SizeInBytes = count * vertexSize;
+	m_View.StrideInBytes = vertexSize;
 	m_View.BufferLocation = m_Resource->GetGPUVirtualAddress();
 }
 

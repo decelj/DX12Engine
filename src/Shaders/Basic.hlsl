@@ -17,8 +17,10 @@ cbuffer Constants : register(b0)
 	float  cPadding;
 };
 
-Texture2D g_texture : register(t0);
-SamplerState g_sampler : register(s0);
+cbuffer GeometryConstants : register(b1)
+{
+	float4x4 cModel;
+}
 
 //#define HAS_NORMAL
 
@@ -31,10 +33,12 @@ PSInput VSMain(
 {
 	PSInput result;
 
-	result.position = mul(cViewProj, float4(position, 1.f));
-	result.uv = (uv.xy + cOffset) * 0.5f;
+	float4x4 modelViewProj = mul(cViewProj, cModel);
+
+	result.position = mul(modelViewProj, float4(position, 1.f));
+	result.uv = uv.xy;
 #ifdef HAS_NORMAL
-	result.normal = normal;
+	result.normal = mul(normal, (float3x3)cModel);
 #endif
 
 	return result;

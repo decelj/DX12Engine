@@ -15,7 +15,7 @@ public:
 	UploadManager();
 	~UploadManager();
 
-	void UploadDataTo(void* data, size_t dataSize, Resource& dest);
+	void UploadDataTo(const void* data, size_t dataSize, Resource& dest);
 	void MakeAllResident();
 	void WaitForUpload();
 
@@ -23,7 +23,7 @@ private:
 	class UploadResource
 	{
 	public:
-		UploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize);
+		UploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize);
 		~UploadResource() = default;
 
 		ID3D12Resource* Resource() { return m_StagedResource.get(); }

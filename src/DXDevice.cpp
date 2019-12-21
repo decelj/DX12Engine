@@ -349,7 +349,7 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	return resource;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, void* data, size_t dataSize)
+ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize)
 {
 	assert(data);
 	assert(dataSize);
