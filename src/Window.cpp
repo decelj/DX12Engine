@@ -12,7 +12,7 @@ Window::~Window()
 {
 }
 
-bool Window::RegesterWindowClass(HINSTANCE instance, WNDPROC windowMessageProc)
+bool Window::RegisterWindowClass(HINSTANCE instance, WNDPROC windowMessageProc)
 {
 	WNDCLASSEX wcx;
 

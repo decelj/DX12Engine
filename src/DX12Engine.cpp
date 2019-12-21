@@ -42,7 +42,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	if (!Window::RegesterWindowClass(hInstance, WndProc))
+	if (!Window::RegisterWindowClass(hInstance, WndProc))
 	{
 		return -1;
 	}

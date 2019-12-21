@@ -14,7 +14,7 @@ public:
 	uint32_t Width() const;
 	uint32_t Height() const;
 
-	static bool RegesterWindowClass(HINSTANCE instance, WNDPROC windowMessageProc);
+	static bool RegisterWindowClass(HINSTANCE instance, WNDPROC windowMessageProc);
 private:
 	void MakeWindow();
 
