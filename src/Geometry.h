@@ -56,6 +56,7 @@ public:
 		: StaticGeometry((const void*)verticies.data(), (uint32_t)verticies.size(), (uint32_t)sizeof(typename VContainer::value_type),
 						 (const void*)indicies.data(), (uint32_t)indicies.size(), uploadMngr)
 	{
+		static_assert(std::is_same_v<typename IContainer::value_type, uint32_t>, "Indicies must be uint32");
 	}
 
 	template<typename VContainer, typename IContainer>
@@ -63,6 +64,8 @@ public:
 		: StaticGeometry((const void*)verticies.data(), (uint32_t)verticies.size(), (uint32_t)sizeof(typename VContainer::value_type),
 						 (const void*)indicies.data(), (uint32_t)indicies.size(), uploadMngr)
 	{
+		static_assert(std::is_same_v<typename IContainer::value_type, uint32_t>, "Indicies must be uint32");
+
 		verticies.clear();
 		indicies.clear();
 	}
@@ -88,6 +91,7 @@ public:
 		: RigidGeometry((const void*)verticies.data(), (uint32_t)verticies.size(), (uint32_t)sizeof(typename VContainer::value_type),
 						(const void*)indicies.data(), (uint32_t)indicies.size(), uploadMngr)
 	{
+		static_assert(std::is_same_v<typename IContainer::value_type, uint32_t>, "Indicies must be uint32");
 	}
 
 	template<typename VContainer, typename IContainer>
@@ -95,6 +99,8 @@ public:
 		: RigidGeometry((const void*)verticies.data(), (uint32_t)verticies.size(), (uint32_t)sizeof(typename VContainer::value_type),
 						(const void*)indicies.data(), (uint32_t)indicies.size(), uploadMngr)
 	{
+		static_assert(std::is_same_v<typename IContainer::value_type, uint32_t>, "Indicies must be uint32");
+
 		verticies.clear();
 		indicies.clear();
 	}
