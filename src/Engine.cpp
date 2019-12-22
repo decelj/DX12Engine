@@ -17,6 +17,9 @@ Engine::Engine(const Window& window)
 	: m_Camera(window.Width(), window.Height(), 50.f, 100.f)
 	, m_FrameConstantData({})
 	, m_Frame(0u)
+	, m_CameraSpeed(0.005f)
+	, m_CameraVelocity({})
+	, m_ClickPos({-1, -1})
 {
 	m_DepthBuffer = std::make_unique<DepthTarget>(DXGI_FORMAT_D24_UNORM_S8_UINT, window.Width(), window.Height());
 	m_BackBuffers = DXDevice::Instance().CreateSwapChainTargets();
@@ -55,6 +58,7 @@ void Engine::RenderFrame()
 	std::unique_ptr<RenderTarget>& backBuffer = m_BackBuffers[bufferIdx];
 	std::unique_ptr<ConstantBuffer>& frameConstBuffer = m_FrameConstBuffers[bufferIdx];
 
+	m_Camera.Translate(m_CameraVelocity);
 	m_FrameConstantData.proj = m_Camera.Proj();
 	m_FrameConstantData.view = m_Camera.View();
 	m_FrameConstantData.viewProj = m_Camera.Proj() * m_Camera.View();
@@ -62,7 +66,7 @@ void Engine::RenderFrame()
 
 	for (std::unique_ptr<Geometry>& geo : m_SceneGeometry)
 	{
-		geo->SetPosition({ std::sinf((float)m_Frame / 2000.f), 0.f, 0.f });
+		//geo->SetPosition({ std::sinf((float)m_Frame / 2000.f), 0.f, 0.f });
 	}
 
 	m_CommandList->Begin();
@@ -92,6 +96,77 @@ void Engine::RenderFrame()
 	DXDevice::Instance().Present();
 
 	++m_Frame;
+}
+
+void Engine::OnKeyDown(char key)
+{
+	switch (key)
+	{
+	case 'w':
+	case 'W':
+		m_CameraVelocity.z = -m_CameraSpeed;
+		break;
+	case 's':
+	case 'S':
+		m_CameraVelocity.z = m_CameraSpeed;
+		break;
+	case 'a':
+	case 'A':
+		m_CameraVelocity.x = m_CameraSpeed;
+		break;
+	case 'd':
+	case 'D':
+		m_CameraVelocity.x = -m_CameraSpeed;
+		break;
+	default:
+		break;
+	}
+}
+
+void Engine::OnKeyUp(char key)
+{
+	switch (key)
+	{
+	case 'w':
+	case 'W':
+	case 's':
+	case 'S':
+		m_CameraVelocity.z = 0.f;
+		break;
+	case 'a':
+	case 'A':
+	case 'd':
+	case 'D':
+		m_CameraVelocity.x = 0.f;
+		break;
+	default:
+		break;
+	}
+}
+
+void Engine::OnMousePress(const glm::ivec2& pos)
+{
+	m_ClickPos = pos;
+}
+
+void Engine::OnMouseRelease(const glm::ivec2& pos)
+{
+	m_ClickPos = { -1, -1 };
+}
+
+void Engine::OnMouseMove(const glm::ivec2& pos)
+{
+	if (m_ClickPos == glm::ivec2(-1, -1))
+	{
+		return;
+	}
+
+	glm::vec2 delta = pos - m_ClickPos;
+	m_ClickPos = pos;
+	delta = glm::radians(delta);
+
+	m_Camera.RotateX(delta.y);
+	m_Camera.RotateY(delta.x);
 }
 
 void Engine::LoadGeometry()

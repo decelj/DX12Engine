@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "DX12Engine.h"
+#include "Windowsx.h"
 #include "Window.h"
 #include "DXDevice.h"
 #include "DXCompiler.h"
@@ -51,7 +51,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
+				// Skip repeated key down messages when key is held
+				if (msg.message == WM_KEYDOWN)
+				{
+					if ((msg.lParam >> 30u) & 0x1)
+					{
+						continue;
+					}
+				}
+
 				TranslateMessage(&msg);
+
+				switch (msg.message)
+				{
+				case WM_LBUTTONDOWN:
+					engine.OnMousePress({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
+					break;
+				case WM_LBUTTONUP:
+					engine.OnMouseRelease({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
+					break;
+				case WM_MOUSEMOVE:
+					engine.OnMouseMove({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
+					break;
+				case WM_CHAR:
+					if (msg.wParam < 255u)
+					{
+						engine.OnKeyDown((char)msg.wParam);
+					}
+					break;
+				case WM_KEYUP:
+					if (msg.wParam < 255u)
+					{
+						engine.OnKeyUp((char)msg.wParam);
+					}
+					break;
+				};
+
 				DispatchMessage(&msg);
 			}
 			else

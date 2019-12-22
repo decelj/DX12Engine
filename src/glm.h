@@ -23,4 +23,17 @@ namespace glm
 			return hash;
 		}
 	};
+
+	template<typename T>
+	std::string ToString(const T& v)
+	{
+		std::string output;
+		for (uint32_t i = 0; i < T::length() - 1u; ++i)
+		{
+			output += std::to_string(v[i]);
+			output += ", ";
+		}
+		output += std::to_string(v[T::length() - 1u]);
+		return output;
+	}
 }

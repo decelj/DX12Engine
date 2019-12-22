@@ -19,6 +19,12 @@ public:
 
 	void RenderFrame();
 
+	void OnKeyDown(char key);
+	void OnKeyUp(char key);
+	void OnMousePress(const glm::ivec2& pos);
+	void OnMouseRelease(const glm::ivec2& pos);
+	void OnMouseMove(const glm::ivec2& pos);
+
 private:
 	void LoadGeometry();
 	void LoadShaders();
@@ -34,8 +40,6 @@ private:
 	std::vector<std::unique_ptr<RenderTarget>>	m_BackBuffers;
 	std::unique_ptr<DXCommandList>				m_CommandList;
 
-	Camera										m_Camera;
-
 	std::vector<std::unique_ptr<Geometry>>		m_SceneGeometry;
 
 	ReleasedUniquePtr<ID3DBlob>					m_VertexShader;
@@ -44,10 +48,15 @@ private:
 	ReleasedUniquePtr<ID3D12PipelineState>		m_PrimaryPSO;
 	ReleasedUniquePtr<ID3D12RootSignature>		m_PrimaryRootSignature;
 
+	Camera										m_Camera;
 	GlobalFrameConstatns						m_FrameConstantData;
 	std::array<std::unique_ptr<ConstantBuffer>, kNumFramesInFlight>		m_FrameConstBuffers;
 
 	UploadManager								m_UploadManager;
 
 	size_t										m_Frame;
+
+	float										m_CameraSpeed;
+	glm::vec3									m_CameraVelocity;
+	glm::ivec2									m_ClickPos;
 };
