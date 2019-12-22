@@ -30,4 +30,7 @@ void Camera::SetViewport(DXCommandList& cmdList) const
 {
 	D3D12_VIEWPORT vp = { 0.f, 0.f, (float)m_ViewWidth, (float)m_ViewHeight, 0.f, 1.f };
 	cmdList.Native()->RSSetViewports(1, &vp);
+
+	D3D12_RECT scissorRect = { 0u, 0u, (LONG)m_ViewWidth, (LONG)m_ViewHeight };
+	cmdList.Native()->RSSetScissorRects(1, &scissorRect);
 }
