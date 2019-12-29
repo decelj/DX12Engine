@@ -19,3 +19,6 @@
 #include "glm.h"
 
 constexpr uint32_t kNumFramesInFlight = 2u;
+
+template<typename T>
+using IFFArray = std::array<T, kNumFramesInFlight>;

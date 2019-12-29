@@ -114,7 +114,7 @@ protected:
 	void UpdateConstants() override;
 
 private:
-	std::array<std::unique_ptr<ConstantBuffer>, kNumFramesInFlight>	m_ConstantBuffers;
-	uint8_t															m_BufferIdx;
-	uint8_t															m_PendingConstantUpdates;
+	IFFArray<std::unique_ptr<ConstantBuffer>>	m_ConstantBuffers;
+	uint8_t										m_BufferIdx;
+	uint8_t										m_PendingConstantUpdates;
 };

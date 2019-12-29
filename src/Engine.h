@@ -50,7 +50,7 @@ private:
 
 	Camera										m_Camera;
 	GlobalFrameConstatns						m_FrameConstantData;
-	std::array<std::unique_ptr<ConstantBuffer>, kNumFramesInFlight>		m_FrameConstBuffers;
+	IFFArray<std::unique_ptr<ConstantBuffer>>	m_FrameConstBuffers;
 
 	UploadManager								m_UploadManager;
 

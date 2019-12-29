@@ -33,11 +33,11 @@ private:
 	using AllocatorPtr = ReleasedUniquePtr<ID3D12CommandAllocator>;
 	using CommandListPtr = ReleasedUniquePtr<ID3D12GraphicsCommandList>;
 
-	const CommandType								m_Type;
-	State											m_State;
-	uint8_t											m_AllocatorIdx;
+	const CommandType			m_Type;
+	State						m_State;
+	uint8_t						m_AllocatorIdx;
 
-	CommandListPtr									m_CmdList;
-	std::array<AllocatorPtr, kNumFramesInFlight>	m_CmdAllocators;
-	std::array<FencePtr, kNumFramesInFlight>		m_Fences;
+	CommandListPtr				m_CmdList;
+	IFFArray<AllocatorPtr>		m_CmdAllocators;
+	IFFArray<FencePtr>			m_Fences;
 };
