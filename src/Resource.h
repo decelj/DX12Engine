@@ -32,6 +32,7 @@ class Resource
 public:
 	Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, ResourceState initialState, ResourceFlags flags, const glm::vec4& clearColor = {});
 	~Resource() = default;
+	Resource(const Resource& other) = delete;
 
 	void TransitionTo(ResourceState destState, DXCommandList& cmdList);
 	ID3D12Resource* Native() { return m_Resource.get(); }
@@ -52,3 +53,22 @@ protected:
 	ReleasedUniquePtr<ID3D12Resource>	m_Resource;
 	ResourceState						m_CurrentState;
 };
+
+
+inline ResourceFlags operator&(const ResourceFlags lhs, const ResourceFlags rhs)
+{
+	using T = std::underlying_type_t<ResourceFlags>;
+	return static_cast<ResourceFlags>(static_cast<T>(lhs)& static_cast<T>(rhs));
+}
+
+inline ResourceFlags operator|(const ResourceFlags lhs, const ResourceFlags rhs)
+{
+	using T = std::underlying_type_t<ResourceFlags>;
+	return static_cast<ResourceFlags>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline ResourceFlags& operator|=(ResourceFlags& lhs, const ResourceFlags rhs)
+{
+	lhs = lhs | rhs;
+	return lhs;
+}

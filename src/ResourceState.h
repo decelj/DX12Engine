@@ -30,6 +30,24 @@ enum class ResourceState
 	Prediction = D3D12_RESOURCE_STATE_PREDICATION
 };
 
+inline ResourceState operator&(const ResourceState lhs, const ResourceState rhs)
+{
+	using T = std::underlying_type_t<ResourceState>;
+	return static_cast<ResourceState>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+inline ResourceState operator|(const ResourceState lhs, const ResourceState rhs)
+{
+	using T = std::underlying_type_t<ResourceState>;
+	return static_cast<ResourceState>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline ResourceState& operator|=(ResourceState& lhs, const ResourceState rhs)
+{
+	lhs = lhs | rhs;
+	return lhs;
+}
+
 inline D3D12_RESOURCE_BARRIER CreateBarrier(ID3D12Resource* resource, ResourceState current, ResourceState dest)
 {
 	return CD3DX12_RESOURCE_BARRIER::Transition(resource, static_cast<D3D12_RESOURCE_STATES>(current), static_cast<D3D12_RESOURCE_STATES>(dest));
