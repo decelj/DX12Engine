@@ -8,12 +8,25 @@ Resource::Resource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t wid
 	: m_Resource(nullptr)
 	, m_CurrentState(initialState)
 {
+	DXGI_FORMAT clearFormat = format;
+	switch (format)
+	{
+	case DXGI_FORMAT_D24_UNORM_S8_UINT:
+		format = DXGI_FORMAT_R24G8_TYPELESS;
+		break;
+	case DXGI_FORMAT_D32_FLOAT:
+		format = DXGI_FORMAT_R32_TYPELESS;
+		break;
+	default:
+		break;
+	}
+
 	DXDevice& device = DXDevice::Instance();
 	m_Resource.reset(
 		device.CreateCommitedResource(
 			dimension, format, width, height, depth,
 			static_cast<D3D12_RESOURCE_STATES>(initialState), flags,
-			clearColor
+			clearColor, clearFormat
 		));
 }
 

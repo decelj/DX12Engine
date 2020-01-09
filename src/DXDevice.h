@@ -30,10 +30,12 @@ public:
 	ID3D12Fence* CreateFence();
 	ID3D12DescriptorHeap* CreateDescriptorHeap(uint32_t* outHandleSize, D3D12_DESCRIPTOR_HEAP_TYPE heapType, uint32_t maxCount);
 	DescriptorHandleWithIdx CreateRTVHandle(ID3D12Resource* renderTarget);
-	DescriptorHandleWithIdx CreateDSVHandle(ID3D12Resource* depthBuffer);
+	DescriptorHandleWithIdx CreateDSVHandle(ID3D12Resource* depthBuffer, DXGI_FORMAT format=DXGI_FORMAT_FORCE_UINT);
 	DescriptorHandleWithIdx CreateCBVHandle(ID3D12Resource* constantBuffer);
+	DescriptorHandleWithIdx CreateSRVHandle(ID3D12Resource* resource, DXGI_FORMAT format=DXGI_FORMAT_FORCE_UINT);
+	DescriptorHandleWithIdx CreateSamplerHandle(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE UMode, D3D12_TEXTURE_ADDRESS_MODE VMode, D3D12_COMPARISON_FUNC cmpFunc);
 	ID3D12RootSignature* CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params);
-	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor = {});
+	ID3D12Resource* CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor = {}, DXGI_FORMAT clearFormat=DXGI_FORMAT_FORCE_UINT);
 	ID3D12Resource* CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize);
 	ID3D12PipelineState* CreatePSO(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc);
 	ID3D12PipelineState* CreatePSO(const D3D12_COMPUTE_PIPELINE_STATE_DESC& desc);

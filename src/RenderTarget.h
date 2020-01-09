@@ -30,7 +30,9 @@ public:
 	~DepthTarget();
 
 	const DescriptorHandle& DSVHandle() const { return m_DSVHandle; }
+	const DescriptorHandle& SRVHandle() const { return m_SRVHandle; }
 
 private:
 	DescriptorHandleWithIdx				m_DSVHandle;
+	DescriptorHandleWithIdx				m_SRVHandle;
 };

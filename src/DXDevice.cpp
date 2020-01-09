@@ -231,11 +231,16 @@ DescriptorHandleWithIdx DXDevice::CreateRTVHandle(ID3D12Resource* renderTarget)
 	return handle;
 }
 
-DescriptorHandleWithIdx DXDevice::CreateDSVHandle(ID3D12Resource* depthBuffer)
+DescriptorHandleWithIdx DXDevice::CreateDSVHandle(ID3D12Resource* depthBuffer, DXGI_FORMAT format)
 {
 	D3D12_RESOURCE_DESC resDesc = depthBuffer->GetDesc();
+	if (format == DXGI_FORMAT_FORCE_UINT)
+	{
+		format = resDesc.Format;
+	}
+
 	D3D12_DEPTH_STENCIL_VIEW_DESC desc = {};
-	desc.Format = resDesc.Format;
+	desc.Format = format;
 
 #define CASE(_type) \
 	case D3D12_RESOURCE_DIMENSION_##_type: \
@@ -269,6 +274,66 @@ DescriptorHandleWithIdx DXDevice::CreateCBVHandle(ID3D12Resource* constantBuffer
 	return handle;
 }
 
+DescriptorHandleWithIdx DXDevice::CreateSRVHandle(ID3D12Resource* resource, DXGI_FORMAT format)
+{
+	D3D12_RESOURCE_DESC resDesc = resource->GetDesc();
+	if (format == DXGI_FORMAT_FORCE_UINT)
+	{
+		format = resDesc.Format;
+	}
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
+	desc.Format = format;
+	desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	switch (resDesc.Dimension)
+	{
+	case D3D12_RESOURCE_DIMENSION_BUFFER:
+		desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		desc.Buffer.FirstElement = 0u;
+		assert(false); // TODO: Support buffers
+		break;
+
+	case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+		desc.Texture1D.MipLevels = resDesc.MipLevels;
+		break;
+
+	case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		desc.Texture2D.MipLevels = resDesc.MipLevels;
+		break;
+
+	case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
+		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+		desc.Texture3D.MipLevels = resDesc.MipLevels;
+		break;
+
+	default:
+		assert(false);
+		break;
+	}
+
+	DescriptorHandleWithIdx handle = m_SRVHeap->AllocateHandle();
+	m_Device->CreateShaderResourceView(resource, &desc, handle.cpuHandle);
+
+	return handle;
+}
+
+DescriptorHandleWithIdx DXDevice::CreateSamplerHandle(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE UMode, D3D12_TEXTURE_ADDRESS_MODE VMode, D3D12_COMPARISON_FUNC cmpFunc)
+{
+	// TODO: Finish me
+	assert(0);
+
+	D3D12_SAMPLER_DESC desc = {};
+	desc.Filter = filter;
+	desc.AddressU = UMode;
+	desc.AddressV = VMode;
+	desc.ComparisonFunc = cmpFunc;
+
+	return DescriptorHandleWithIdx();
+}
+
 ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params)
 {
 	D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -287,7 +352,7 @@ ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_
 	return rootSig;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor)
+ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DXGI_FORMAT format, uint32_t width, uint32_t height, uint32_t depth, D3D12_RESOURCE_STATES initialState, ResourceFlags flags, const glm::vec4& clearColor, DXGI_FORMAT clearFormat)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Format = format;
@@ -300,6 +365,10 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 
 	D3D12_CLEAR_VALUE* clearValuePtr = nullptr;
 	D3D12_CLEAR_VALUE clearValue = {};
+	if (clearFormat == DXGI_FORMAT_FORCE_UINT)
+	{
+		clearFormat = format;
+	}
 
 	switch (dimension)
 	{
@@ -311,17 +380,21 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	case ResourceDimension::Texture2D:
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-		clearValuePtr = &clearValue;
-		clearValue.Format = format;
-		if (	format == DXGI_FORMAT_D24_UNORM_S8_UINT
-			||	format == DXGI_FORMAT_D16_UNORM
-			||	format == DXGI_FORMAT_D32_FLOAT)
+		if (	(flags & ResourceFlags::RenderTarget) != ResourceFlags::None
+			||	(flags & ResourceFlags::DepthStencil) != ResourceFlags::None)
 		{
-			clearValue.DepthStencil.Depth = clearColor.r;
-		}
-		else
-		{
-			std::copy((float*)&clearColor[0], (float*)&clearColor[3], clearValue.Color);
+			clearValuePtr = &clearValue;
+			clearValue.Format = clearFormat;
+			if (clearFormat == DXGI_FORMAT_D24_UNORM_S8_UINT
+				|| clearFormat == DXGI_FORMAT_D16_UNORM
+				|| clearFormat == DXGI_FORMAT_D32_FLOAT)
+			{
+				clearValue.DepthStencil.Depth = clearColor.r;
+			}
+			else
+			{
+				std::copy((float*)&clearColor[0], (float*)&clearColor[3], clearValue.Color);
+			}
 		}
 
 		break;
