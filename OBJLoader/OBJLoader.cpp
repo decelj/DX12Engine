@@ -11,7 +11,6 @@
 #include <limits>
 #include <array>
 #include <unordered_map>
-#include <list>
 #include <string.h>
 
 namespace fs = std::filesystem;
