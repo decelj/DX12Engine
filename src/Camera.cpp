@@ -23,7 +23,14 @@ void Camera::SetPosition(const glm::vec3& pos)
 
 void Camera::LookAt(const glm::vec3& pos, const glm::vec3& point)
 {
-	m_View = glm::lookAt(pos, point, glm::vec3(0.f, 1.f, 0.f));
+	if (std::fabsf(pos[0]) + std::fabsf(pos[2]) < 0.02f)
+	{
+		m_View = glm::lookAt(pos, point, glm::vec3(0.f, 0.f, 1.f));
+	}
+	else
+	{
+		m_View = glm::lookAt(pos, point, glm::vec3(0.f, 1.f, 0.f));
+	}
 }
 
 void Camera::SetViewport(DXCommandList& cmdList) const
