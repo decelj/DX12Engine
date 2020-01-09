@@ -334,11 +334,13 @@ DescriptorHandleWithIdx DXDevice::CreateSamplerHandle(D3D12_FILTER filter, D3D12
 	return DescriptorHandleWithIdx();
 }
 
-ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params)
+ID3D12RootSignature* DXDevice::CreateRootSignature(const std::vector<D3D12_ROOT_PARAMETER1>& params, const std::vector<D3D12_STATIC_SAMPLER_DESC>& staticSamplers)
 {
 	D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
 	desc.Desc_1_1.NumParameters = (uint32_t)params.size();
 	desc.Desc_1_1.pParameters = params.data();
+	desc.Desc_1_1.NumStaticSamplers = (uint32_t)staticSamplers.size();
+	desc.Desc_1_1.pStaticSamplers = staticSamplers.data();
 	desc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
 	desc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
