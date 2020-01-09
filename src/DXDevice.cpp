@@ -431,11 +431,8 @@ ID3D12Resource* DXDevice::CreateCommitedResource(ResourceDimension dimension, DX
 	return resource;
 }
 
-ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize)
+ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC& desc)
 {
-	assert(data);
-	assert(dataSize);
-
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -446,11 +443,6 @@ ID3D12Resource* DXDevice::CreateCommitedUploadResource(const D3D12_RESOURCE_DESC
 		m_Device->CreateCommittedResource(
 			&heapProps, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
 			&desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&resource)));
-
-	uint8_t* gpuData = nullptr;
-	ThrowIfFailed(resource->Map(0, &CD3DX12_RANGE(0, 0), reinterpret_cast<void**>(&gpuData)));
-	memcpy(gpuData, data, dataSize);
-	resource->Unmap(0, nullptr);
 
 	return resource;
 }

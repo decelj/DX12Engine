@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "UploadManager.h"
 #include "DXDevice.h"
+#include "Resource.h"
+
 
 UploadManager::UploadManager()
 	: m_UploadCommands(CommandType::COPY)
@@ -18,8 +20,16 @@ void UploadManager::UploadDataTo(const void* data, size_t dataSize, Resource& de
 		m_UploadCommands.Begin();
 	}
 
-	m_PendingResources.emplace_back(std::make_unique<UploadResource>(dest.GetDesc(), data, dataSize));
-	m_UploadCommands.Native()->CopyResource(dest.Native(), m_PendingResources.back()->Resource());
+	UploadBufferUniquePtr uploadBuffer = std::make_unique<UploadBuffer>(dataSize);
+
+	uint8_t* gpuData = uploadBuffer->Map();
+	std::memcpy(gpuData, data, dataSize);
+	uploadBuffer->Unmap();
+
+	m_UploadCommands.Native()->CopyResource(dest.Native(), uploadBuffer->Native());
+	dest.SetStateTo(ResourceState::Common);
+
+	m_PendingResources.emplace_back(std::move(uploadBuffer));
 	dest.SetStateTo(ResourceState::Common);
 }
 
@@ -43,11 +53,8 @@ void UploadManager::WaitForUpload()
 	m_SubmittedResources.clear();
 }
 
-UploadManager::UploadResource::UploadResource(const D3D12_RESOURCE_DESC& desc, const void* data, size_t dataSize)
-	: m_StagedResource(nullptr)
+UploadManager::UploadBuffer::UploadBuffer(size_t size)
+	: m_Resource(nullptr)
 {
-	assert(data);
-	assert(dataSize);
-
-	m_StagedResource.reset(DXDevice::Instance().CreateCommitedUploadResource(desc, data, dataSize));
+	m_Resource.reset(DXDevice::Instance().CreateCommitedUploadResource(CD3DX12_RESOURCE_DESC::Buffer(size)));
 }
