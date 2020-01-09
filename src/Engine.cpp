@@ -289,8 +289,8 @@ void Engine::SetupLights()
 {
 	m_Lights.emplace_back(
 		std::make_unique<SpotLight>(
-			glm::vec3(3.f, 3.f, 3.f),
+			glm::vec3(2.f, 3.f, 2.f),
 			glm::vec3(0.f, 0.5f, 0.f),
-			glm::vec3(1.f, 0.6f, 0.6f),
-			40.f, 512u, 0.1f, 30.f));
+			glm::vec3(1.f, 0.75f, 0.7f) * 12.f,
+			60.f, 512u, 0.1f, 30.f));
 }

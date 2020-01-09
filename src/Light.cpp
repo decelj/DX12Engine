@@ -57,11 +57,15 @@ void ShadowMapRenderer::SubmitCommands()
 }
 
 
-SpotLight::SpotLight(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& color, float angleDegrees, uint32_t shadowMapSize, float nearFlip, float farClip)
-	: m_View(shadowMapSize, shadowMapSize, angleDegrees, farClip)
-	, m_ShadowMap(nullptr)
-	, m_LightColor(color)
+SpotLight::SpotLight(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& color, float angleDegrees, uint32_t shadowMapSize, float nearClip, float farClip)
+	: m_Position(position)
 	, m_Direction(glm::normalize(lookAt - position))
+	, m_ConeAngle(glm::radians(angleDegrees))
+	, m_LightColor(color)
+	, m_ShadowMapSize(shadowMapSize)
+	, m_NearClip(nearClip)
+	, m_FarClip(farClip)
+	, m_ShadowMap(nullptr)
 {
 	if (shadowMapSize > 0u)
 	{
@@ -71,8 +75,6 @@ SpotLight::SpotLight(const glm::vec3& position, const glm::vec3& lookAt, const g
 			constantBuffer = std::make_unique<ConstantBuffer>((uint32_t)sizeof(ShadowMapViewConstants));
 		}
 	}
-
-	m_View.LookAt(position, lookAt);
 
 	for (auto& constantBuffer : m_LightConstants)
 	{
@@ -86,11 +88,16 @@ void SpotLight::SetupShadowMap(ShadowMapRenderer& renderer) const
 
 	{
 		ShadowMapViewConstants viewConstants;
-		viewConstants.m_ViewProj = m_View.Proj() * m_View.View();
+		viewConstants.m_ViewProj = MakeProjection() * MakeView();
 		m_ShadowMapConstants[renderer.FrameIndex()]->SetData(0u, viewConstants);
 	}
 
-	m_View.SetViewport(cmdList);
+	D3D12_VIEWPORT vp = { 0.f, 0.f, (float)m_ShadowMapSize, (float)m_ShadowMapSize, 0.f, 1.f };
+	cmdList.Native()->RSSetViewports(1, &vp);
+
+	D3D12_RECT scissorRect = { 0u, 0u, (LONG)m_ShadowMapSize, (LONG)m_ShadowMapSize };
+	cmdList.Native()->RSSetScissorRects(1, &scissorRect);
+
 	m_ShadowMap->TransitionTo(ResourceState::DepthWrite, cmdList);
 	cmdList.Native()->ClearDepthStencilView(m_ShadowMap->DSVHandle().cpuHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 	cmdList.Native()->OMSetRenderTargets(0u, nullptr, false, &m_ShadowMap->DSVHandle().cpuHandle);
@@ -103,10 +110,12 @@ void SpotLight::SetupLightingRender(DXCommandList& cmdList, uint32_t frameIdx) c
 		LightConstants constants;
 		constants.m_LightColor = glm::vec4(m_LightColor, 0.f);
 		constants.m_LightDirection = glm::vec4(m_Direction, 0.f);
+		constants.m_LightPostion = m_Position;
+		constants.m_ConeAngle = glm::cos(m_ConeAngle / 2.f);
 
 		glm::mat4 scale = glm::scale(glm::identity<glm::mat4>(), { 0.5f, -0.5f, 1.f });
 		glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), { 0.5f, 0.5f, 0.f });
-		constants.m_WorldToLight = translate * scale * m_View.Proj() * m_View.View();
+		constants.m_WorldToLight = translate * scale * MakeProjection() * MakeView();
 
 		m_LightConstants[frameIdx]->SetData(0u, constants);
 	}

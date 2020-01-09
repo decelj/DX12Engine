@@ -30,6 +30,9 @@ cbuffer LightConstants : register(b2)
 	float4x4	cWorldToShadowMap;
 	float4		cLightDirection;
 	float4		cLightColor;
+
+	float		cConeAngle;
+	float3		cLightPosition;
 }
 
 SamplerComparisonState sShadowSampler : register(s0);
@@ -57,17 +60,34 @@ PSInput VSMain(
 	return result;
 }
 
+float AttenuateLight(float3 pToLight)
+{
+	return rcp(dot(pToLight, pToLight));
+}
+
 float4 PSMain(PSInput input) : SV_TARGET
 {
 #ifdef HAS_NORMAL
-	float4 shadowMapCoord = mul(cWorldToShadowMap, float4(input.Pw, 1.f));
-	shadowMapCoord.xyz /= shadowMapCoord.w;
+	float3 result = float3(0.f, 0.f, 0.f);
 
-	float shadow = tShadowMap.SampleCmp(sShadowSampler, shadowMapCoord.xy, shadowMapCoord.z - SHADOW_BIAS);
 	float lDotN = dot(input.N, -cLightDirection.xyz);
-	float3 lighting = saturate(lDotN) * shadow * cLightColor.rgb;
-	return float4(lighting, 1.f);
-	//return float4(input.normal * 0.5f + 0.5f, 1.f);
+	if (lDotN > 0.f)
+	{
+		float3 fromLight = input.Pw - cLightPosition;
+		float intensity = AttenuateLight(fromLight);
+
+		fromLight = normalize(fromLight);
+		if (intensity > 0.001f && dot(fromLight, cLightDirection.xyz) > cConeAngle)
+		{
+			float4 shadowMapCoord = mul(cWorldToShadowMap, float4(input.Pw, 1.f));
+			shadowMapCoord.xyz /= shadowMapCoord.w;
+
+			float shadow = tShadowMap.SampleCmp(sShadowSampler, shadowMapCoord.xy, shadowMapCoord.z - SHADOW_BIAS);
+			result = lDotN * shadow * intensity * cLightColor.rgb;
+		}
+	}
+
+	return float4(result, 1.f);
 #else
 	return float4(input.uv.x, input.uv.y, 0, 1);
 #endif

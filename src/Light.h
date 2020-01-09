@@ -34,6 +34,9 @@ protected:
 		glm::mat4	m_WorldToLight;
 		glm::vec4	m_LightDirection;
 		glm::vec4	m_LightColor;
+
+		float		m_ConeAngle;
+		glm::vec3	m_LightPostion;
 	};
 
 private:
@@ -43,7 +46,7 @@ private:
 class SpotLight : public Light
 {
 public:
-	SpotLight(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& color, float angleDegrees, uint32_t shadowMapSize, float nearFlip, float farClip);
+	SpotLight(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& color, float angleDegrees, uint32_t shadowMapSize, float nearClip, float farClip);
 	~SpotLight() = default;
 
 	bool HasShadowMap() const override
@@ -60,12 +63,55 @@ public:
 	void SetupLightingRender(DXCommandList& cmdList, uint32_t frameIdx) const override;
 
 private:
-	Camera										m_View;
+	glm::mat4 MakeView() const
+	{
+		glm::vec3 upVec = { 0.f, 1.f, 0.f };
+
+		glm::vec3 sideVec = glm::cross(m_Direction, upVec);
+		if (glm::all(glm::lessThan(glm::abs(sideVec), glm::vec3(0.01f))))
+		{
+			upVec = { 0.f, 0.f, 1.f };
+			sideVec = glm::cross(m_Direction, upVec);
+		}
+
+		sideVec = glm::normalize(sideVec);
+		upVec = glm::cross(sideVec, m_Direction);
+
+		glm::mat4 view = glm::identity<glm::mat4>();
+		view[0].x = sideVec.x;
+		view[1].x = sideVec.y;
+		view[2].x = sideVec.z;
+		view[0].y = upVec.x;
+		view[1].y = upVec.y;
+		view[2].y = upVec.z;
+		view[0].z = -m_Direction.x;
+		view[1].z = -m_Direction.y;
+		view[2].z = -m_Direction.z;
+		view[3].x = -glm::dot(sideVec, m_Position);
+		view[3].y = -glm::dot(upVec, m_Position);
+		view[3].z =  glm::dot(m_Direction, m_Position);
+
+		return view;
+	}
+
+	glm::mat4 MakeProjection() const
+	{
+		float viewportSize = m_ShadowMapSize ? (float)m_ShadowMapSize : 256.f;
+		return glm::perspectiveFov(m_ConeAngle, viewportSize, viewportSize, m_NearClip, m_FarClip);
+	}
+
+	glm::vec3									m_Position;
+	glm::vec3									m_Direction;
+	float										m_ConeAngle;
+	glm::vec3									m_LightColor;
+
+	uint32_t									m_ShadowMapSize;
+	float										m_NearClip;
+	float										m_FarClip;
+
 	std::unique_ptr<DepthTarget>				m_ShadowMap;
 	IFFArray<std::unique_ptr<ConstantBuffer>>	m_ShadowMapConstants;
 	IFFArray<std::unique_ptr<ConstantBuffer>>	m_LightConstants;
-	glm::vec3									m_LightColor;
-	glm::vec3									m_Direction; // TODO: Hack
 };
 
 
