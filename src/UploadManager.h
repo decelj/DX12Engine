@@ -9,6 +9,7 @@
 #include <mutex>
 
 class Resource;
+class Texture2D;
 
 class UploadManager
 {
@@ -17,6 +18,7 @@ public:
 	~UploadManager();
 
 	void UploadDataTo(const void* data, size_t dataSize, Resource& dest);
+	void UploadDataTo(const void* data, uint32_t dataBPT, Texture2D& dest);
 	void MakeAllResident();
 	void WaitForUpload();
 

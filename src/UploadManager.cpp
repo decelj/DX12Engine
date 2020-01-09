@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UploadManager.h"
 #include "DXDevice.h"
+#include "Texture.h"
 #include "Resource.h"
 
 
@@ -28,6 +29,26 @@ void UploadManager::UploadDataTo(const void* data, size_t dataSize, Resource& de
 
 	m_UploadCommands.Native()->CopyResource(dest.Native(), uploadBuffer->Native());
 	dest.SetStateTo(ResourceState::Common);
+
+	m_PendingResources.emplace_back(std::move(uploadBuffer));
+}
+
+void UploadManager::UploadDataTo(const void* data, uint32_t dataBPT, Texture2D& dest)
+{
+	if (!m_UploadCommands.IsOpen())
+	{
+		m_UploadCommands.Begin();
+	}
+
+	const size_t uploadBufferSize = GetRequiredIntermediateSize(dest.Native(), 0, 1u);
+	UploadBufferUniquePtr uploadBuffer = std::make_unique<UploadBuffer>(uploadBufferSize);
+
+	const D3D12_RESOURCE_DESC destDesc = dest.GetDesc();
+	D3D12_SUBRESOURCE_DATA subResource = {};
+	subResource.pData = data;
+	subResource.RowPitch = destDesc.Width * dataBPT;
+	subResource.SlicePitch = subResource.RowPitch * destDesc.Height;
+	UpdateSubresources(m_UploadCommands.Native(), dest.Native(), uploadBuffer->Native(), 0, 0, 1, &subResource);
 
 	m_PendingResources.emplace_back(std::move(uploadBuffer));
 	dest.SetStateTo(ResourceState::Common);
