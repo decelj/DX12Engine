@@ -45,6 +45,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFull|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\PSOBuilder.cpp" />
     <ClCompile Include="src\RenderTarget.cpp" />
     <ClCompile Include="src\Resource.cpp" />
@@ -320,6 +321,7 @@
     <ClInclude Include="src\glm\vec4.hpp" />
     <ClInclude Include="src\glm\vector_relational.hpp" />
     <ClInclude Include="src\HRException.h" />
+    <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\PSOBuilder.h" />
     <ClInclude Include="src\ReleasedUniquePtr.h" />
     <ClInclude Include="src\RenderTarget.h" />

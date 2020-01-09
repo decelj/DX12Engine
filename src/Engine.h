@@ -6,6 +6,8 @@
 #include "Buffer.h"
 #include "RenderTarget.h"
 #include "Geometry.h"
+#include "Light.h"
+#include "Texture.h"
 
 class Window;
 class DXCommandList;
@@ -28,6 +30,7 @@ public:
 private:
 	void LoadGeometry();
 	void LoadShaders();
+	void SetupLights();
 
 	struct GlobalFrameConstatns
 	{
@@ -41,6 +44,9 @@ private:
 	std::unique_ptr<DXCommandList>				m_CommandList;
 
 	std::vector<std::unique_ptr<Geometry>>		m_SceneGeometry;
+	std::vector<std::unique_ptr<Light>>			m_Lights;
+
+	ShadowMapRenderer							m_ShadowMapRenderer;
 
 	ReleasedUniquePtr<ID3DBlob>					m_VertexShader;
 	ReleasedUniquePtr<ID3DBlob>					m_PixelShader;
@@ -51,6 +57,8 @@ private:
 	Camera										m_Camera;
 	GlobalFrameConstatns						m_FrameConstantData;
 	IFFArray<std::unique_ptr<ConstantBuffer>>	m_FrameConstBuffers;
+
+	std::unique_ptr<Texture2D>					m_CheckboardTexture;
 
 	UploadManager								m_UploadManager;
 
