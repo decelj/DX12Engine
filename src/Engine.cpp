@@ -104,11 +104,11 @@ void Engine::OnKeyDown(char key)
 	{
 	case 'w':
 	case 'W':
-		m_CameraVelocity.z = -m_CameraSpeed;
+		m_CameraVelocity.z = m_CameraSpeed;
 		break;
 	case 's':
 	case 'S':
-		m_CameraVelocity.z = m_CameraSpeed;
+		m_CameraVelocity.z = -m_CameraSpeed;
 		break;
 	case 'a':
 	case 'A':
