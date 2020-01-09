@@ -7,9 +7,10 @@ class DXDevice;
 
 enum class DescriptorType
 {
-	RTV,
-	SRV,
-	DSV
+	RTV = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+	SRV = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+	DSV = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+	Sampler = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
 };
 
 struct DescriptorHandle
@@ -31,6 +32,8 @@ public:
 
 	DescriptorHandleWithIdx AllocateHandle();
 	void FreeHandle(const DescriptorHandleWithIdx& desc);
+
+	ID3D12DescriptorHeap& Native() { return *m_Heap; }
 
 private:
 	std::vector<uint32_t>					m_FreeHandles;

@@ -68,6 +68,11 @@ void DXCommandList::Begin(ID3D12PipelineState* pso)
 	m_Fences[m_AllocatorIdx]->Wait();
 	m_CmdAllocators[m_AllocatorIdx]->Reset();
 	ThrowIfFailed(m_CmdList->Reset(m_CmdAllocators[m_AllocatorIdx].get(), pso));
+
+	if (m_Type != CommandType::COPY)
+	{
+		DXDevice::Instance().SetDescriptorHeaps(m_CmdList.get());
+	}
 }
 
 void DXCommandList::End()
@@ -80,6 +85,8 @@ void DXCommandList::End()
 
 void DXCommandList::Submit()
 {
+	assert(m_State == State::CLOSED);
+
 	DXDevice& device = DXDevice::Instance();
 	device.Submit(m_CmdList.get(), m_Type);
 	m_Fences[m_AllocatorIdx]->Signal();

@@ -44,6 +44,7 @@ public:
 	void ReleaseRTVDescriptor(DescriptorHandleWithIdx& handle) { m_RTVHeap->FreeHandle(handle); }
 	void ReleaseSRVDescriptor(DescriptorHandleWithIdx& handle) { m_SRVHeap->FreeHandle(handle); }
 	void ReleaseDSVDescriptor(DescriptorHandleWithIdx& handle) { m_DSVHeap->FreeHandle(handle); }
+	void SetDescriptorHeaps(ID3D12GraphicsCommandList* cmdList);
 
 	std::vector<std::unique_ptr<RenderTarget>> CreateSwapChainTargets();
 
@@ -61,4 +62,5 @@ private:
 	std::unique_ptr<DescriptorHeap>			m_SRVHeap;
 	std::unique_ptr<DescriptorHeap>			m_RTVHeap;
 	std::unique_ptr<DescriptorHeap>			m_DSVHeap;
+	std::unique_ptr<DescriptorHeap>			m_SamplerHeap;
 };

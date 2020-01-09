@@ -10,23 +10,7 @@ DescriptorHeap::DescriptorHeap(DXDevice& device, DescriptorType type, uint32_t m
 	m_FreeHandles.resize(maxCount);
 	std::iota(m_FreeHandles.begin(), m_FreeHandles.end(), 0);
 
-	D3D12_DESCRIPTOR_HEAP_TYPE dxType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	switch (type)
-	{
-	case DescriptorType::RTV:
-		dxType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		break;
-	case DescriptorType::SRV:
-		dxType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		break;
-	case DescriptorType::DSV:
-		dxType = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
+	D3D12_DESCRIPTOR_HEAP_TYPE dxType = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(type);
 	m_Heap.reset(device.CreateDescriptorHeap(&m_HandleSize, dxType, maxCount));
 }
 

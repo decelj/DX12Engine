@@ -118,6 +118,7 @@ DXDevice::DXDevice(const Window& window)
 	m_RTVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::RTV, kMaxHandles);
 	m_SRVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::SRV, kMaxHandles);
 	m_DSVHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::DSV, kMaxHandles);
+	m_SamplerHeap = std::make_unique<DescriptorHeap>(*this, DescriptorType::Sampler, kMaxHandles);
 }
 
 void DXDevice::InitFromWindow(const Window& window)
@@ -188,6 +189,12 @@ ID3D12DescriptorHeap* DXDevice::CreateDescriptorHeap(uint32_t* outHandleSize, D3
 	heapDesc.NumDescriptors = maxCount;
 	heapDesc.Type = heapType;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+	if (	heapType == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		||	heapType == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+	{
+		heapDesc.Flags |= D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	}
 
 	ID3D12DescriptorHeap* heap = nullptr;
 	ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
@@ -425,6 +432,18 @@ void DXDevice::SignalFence(ID3D12Fence* fence, uint64_t value, CommandType destQ
 		assert(false);
 		break;
 	}
+}
+
+void DXDevice::SetDescriptorHeaps(ID3D12GraphicsCommandList* cmdList)
+{
+	assert(cmdList);
+
+	ID3D12DescriptorHeap* heaps[] =
+	{
+		&m_SamplerHeap->Native(),
+		&m_SRVHeap->Native()
+	};
+	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 }
 
 std::vector<std::unique_ptr<RenderTarget>> DXDevice::CreateSwapChainTargets()
