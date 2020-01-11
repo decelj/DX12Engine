@@ -5,32 +5,25 @@
 #include <d3d12.h>
 
 
-Camera::Camera(uint32_t width, uint32_t height, float fov, float farClip)
-	: m_View()
+Camera::Camera(uint32_t width, uint32_t height, float fov, float nearClip, float farClip)
+	: m_ViewQuat()
+	, m_Translation(0.f)
+	, m_View()
 	, m_Proj()
 	, m_FOV(glm::radians(fov))
 	, m_ViewWidth(width)
 	, m_ViewHeight(height)
+	, m_NearClip(nearClip)
 	, m_FarClip(farClip)
 {
-	m_Proj = glm::perspectiveFov(m_FOV, (float)m_ViewHeight, (float)m_ViewHeight, 0.1f, m_FarClip);
-}
-
-void Camera::SetPosition(const glm::vec3& pos)
-{
-	m_View[3] = glm::vec4(pos, 1.f);
+	m_Proj = glm::perspectiveFov(m_FOV, (float)m_ViewHeight, (float)m_ViewHeight, m_NearClip, m_FarClip);
 }
 
 void Camera::LookAt(const glm::vec3& pos, const glm::vec3& point)
 {
-	if (std::fabsf(pos[0]) + std::fabsf(pos[2]) < 0.02f)
-	{
-		m_View = glm::lookAt(pos, point, glm::vec3(0.f, 0.f, 1.f));
-	}
-	else
-	{
-		m_View = glm::lookAt(pos, point, glm::vec3(0.f, 1.f, 0.f));
-	}
+	m_ViewQuat = glm::quatLookAt(glm::normalize(point - pos), { 0.f, 1.f, 0.f });
+	m_Translation = pos;
+	CalculateViewMatrix();
 }
 
 void Camera::SetViewport(DXCommandList& cmdList) const

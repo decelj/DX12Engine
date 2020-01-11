@@ -9,6 +9,8 @@
 #include "Light.h"
 #include "Texture.h"
 
+#include <bitset>
+
 class Window;
 class DXCommandList;
 
@@ -21,8 +23,16 @@ public:
 
 	void RenderFrame();
 
-	void OnKeyDown(char key);
-	void OnKeyUp(char key);
+	void OnKeyDown(unsigned char key)
+	{
+		m_KeyState[static_cast<uint32_t>(key)] = true;
+	}
+
+	void OnKeyUp(unsigned char key)
+	{
+		m_KeyState[static_cast<uint32_t>(key)] = false;
+	}
+
 	void OnMousePress(const glm::ivec2& pos);
 	void OnMouseRelease(const glm::ivec2& pos);
 	void OnMouseMove(const glm::ivec2& pos);
@@ -32,11 +42,15 @@ private:
 	void LoadShaders();
 	void SetupLights();
 
-	struct GlobalFrameConstatns
+	void UpdateCamera();
+
+	struct GlobalFrameConstants
 	{
-		glm::mat4 view;
-		glm::mat4 proj;
-		glm::mat4 viewProj;
+		glm::mat4	m_View;
+		glm::mat4	m_Proj;
+		glm::mat4	m_ViewProj;
+		glm::vec3	m_CameraPos;
+		float		m_Padding;
 	};
 
 	std::unique_ptr<DepthTarget>				m_DepthBuffer;
@@ -55,7 +69,6 @@ private:
 	ReleasedUniquePtr<ID3D12RootSignature>		m_PrimaryRootSignature;
 
 	Camera										m_Camera;
-	GlobalFrameConstatns						m_FrameConstantData;
 	IFFArray<std::unique_ptr<ConstantBuffer>>	m_FrameConstBuffers;
 
 	std::unique_ptr<Texture2D>					m_CheckboardTexture;
@@ -64,7 +77,11 @@ private:
 
 	size_t										m_Frame;
 
+	std::bitset<256u>							m_KeyState;
+
+	float										m_CameraPitch;
+	float										m_CameraYaw;
 	float										m_CameraSpeed;
-	glm::vec3									m_CameraVelocity;
+
 	glm::ivec2									m_ClickPos;
 };

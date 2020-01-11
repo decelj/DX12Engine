@@ -74,15 +74,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					engine.OnMouseMove({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
 					break;
 				case WM_CHAR:
-					if (msg.wParam < 255u)
+					if (msg.wParam < 256u)
 					{
-						engine.OnKeyDown((char)msg.wParam);
+						/* WM_DEADCHAR doesn't seem to work.
+						 * Catching WM_KEYUP instead, which is pre-translation.
+						 * This means chars always uppercase.
+						 * I should fix this someday...
+						 */
+						engine.OnKeyDown((unsigned char)std::toupper((int)msg.wParam));
 					}
 					break;
 				case WM_KEYUP:
-					if (msg.wParam < 255u)
+					if (msg.wParam < 256u)
 					{
-						engine.OnKeyUp((char)msg.wParam);
+						engine.OnKeyUp((unsigned char)msg.wParam);
 					}
 					break;
 				};

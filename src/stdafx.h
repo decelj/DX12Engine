@@ -18,7 +18,11 @@
 #include "ReleasedUniquePtr.h"
 #include "glm.h"
 
-constexpr uint32_t kNumFramesInFlight = 2u;
+constexpr uint32_t	kNumFramesInFlight = 2u;
+
+constexpr float		k2PI = glm::two_pi<float>();
+constexpr float		kPI = glm::pi<float>();
+constexpr float		kHalfPI = glm::half_pi<float>();
 
 template<typename T>
 using IFFArray = std::array<T, kNumFramesInFlight>;

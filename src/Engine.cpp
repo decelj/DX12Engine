@@ -14,11 +14,11 @@
 
 
 Engine::Engine(const Window& window)
-	: m_Camera(window.Width(), window.Height(), 50.f, 100.f)
-	, m_FrameConstantData({})
+	: m_Camera(window.Width(), window.Height(), 50.f, 0.1f, 100.f)
 	, m_Frame(0u)
+	, m_CameraPitch(0.f)
+	, m_CameraYaw(0.f)
 	, m_CameraSpeed(0.005f)
-	, m_CameraVelocity({})
 	, m_ClickPos({-1, -1})
 {
 	m_DepthBuffer = std::make_unique<DepthTarget>(DXGI_FORMAT_D24_UNORM_S8_UINT, window.Width(), window.Height());
@@ -27,7 +27,7 @@ Engine::Engine(const Window& window)
 
 	for (auto& constantBuffer : m_FrameConstBuffers)
 	{
-		constantBuffer = std::make_unique<ConstantBuffer>((uint32_t)sizeof(GlobalFrameConstatns));
+		constantBuffer = std::make_unique<ConstantBuffer>((uint32_t)sizeof(GlobalFrameConstants));
 	}
 
 	{
@@ -73,7 +73,7 @@ Engine::Engine(const Window& window)
 	m_CommandList->End();
 	m_CommandList->Submit();
 
-	m_Camera.LookAt({ 0.f, 1.f, 4.f }, { 0.f, 0.75f, 0.f });
+	m_Camera.SetTranslation({ 0.f, 1.f, 4.f });
 }
 
 void Engine::RenderFrame()
@@ -93,11 +93,14 @@ void Engine::RenderFrame()
 	std::unique_ptr<RenderTarget>& backBuffer = m_BackBuffers[bufferIdx];
 	std::unique_ptr<ConstantBuffer>& frameConstBuffer = m_FrameConstBuffers[bufferIdx];
 
-	m_Camera.Translate(m_CameraVelocity);
-	m_FrameConstantData.proj = m_Camera.Proj();
-	m_FrameConstantData.view = m_Camera.View();
-	m_FrameConstantData.viewProj = m_Camera.Proj() * m_Camera.View();
-	frameConstBuffer->SetData(0u, m_FrameConstantData);
+	UpdateCamera();
+
+	GlobalFrameConstants frameConstants;
+	frameConstants.m_Proj = m_Camera.Proj();
+	frameConstants.m_View = m_Camera.View();
+	frameConstants.m_ViewProj = m_Camera.Proj() * m_Camera.View();
+	frameConstants.m_CameraPos = m_Camera.Position();
+	frameConstBuffer->SetData(0u, frameConstants);
 
 	for (std::unique_ptr<Geometry>& geo : m_SceneGeometry)
 	{
@@ -136,52 +139,6 @@ void Engine::RenderFrame()
 	++m_Frame;
 }
 
-void Engine::OnKeyDown(char key)
-{
-	switch (key)
-	{
-	case 'w':
-	case 'W':
-		m_CameraVelocity.z = m_CameraSpeed;
-		break;
-	case 's':
-	case 'S':
-		m_CameraVelocity.z = -m_CameraSpeed;
-		break;
-	case 'a':
-	case 'A':
-		m_CameraVelocity.x = m_CameraSpeed;
-		break;
-	case 'd':
-	case 'D':
-		m_CameraVelocity.x = -m_CameraSpeed;
-		break;
-	default:
-		break;
-	}
-}
-
-void Engine::OnKeyUp(char key)
-{
-	switch (key)
-	{
-	case 'w':
-	case 'W':
-	case 's':
-	case 'S':
-		m_CameraVelocity.z = 0.f;
-		break;
-	case 'a':
-	case 'A':
-	case 'd':
-	case 'D':
-		m_CameraVelocity.x = 0.f;
-		break;
-	default:
-		break;
-	}
-}
-
 void Engine::OnMousePress(const glm::ivec2& pos)
 {
 	m_ClickPos = pos;
@@ -200,11 +157,52 @@ void Engine::OnMouseMove(const glm::ivec2& pos)
 	}
 
 	glm::vec2 delta = pos - m_ClickPos;
-	m_ClickPos = pos;
-	delta = glm::radians(delta);
+	delta *= 0.01f;
 
-	m_Camera.RotateX(delta.y);
-	m_Camera.RotateY(delta.x);
+	m_CameraPitch += delta.y;
+	m_CameraPitch = std::min(std::max(m_CameraPitch, -kHalfPI), kHalfPI);
+
+	m_CameraYaw += delta.x;
+	if (m_CameraYaw > kPI)
+	{
+		m_CameraYaw -= k2PI;
+	}
+	else if (m_CameraYaw < -kPI)
+	{
+		m_CameraYaw += k2PI;
+	}
+
+	m_ClickPos = pos;
+}
+
+void Engine::UpdateCamera()
+{
+	float forwardSpeed = 0.f;
+	float sideSpeed = 0.f;
+	if (m_KeyState['W'])
+	{
+		forwardSpeed -= m_CameraSpeed;
+	}
+
+	if (m_KeyState['S'])
+	{
+		forwardSpeed += m_CameraSpeed;
+	}
+
+	if (m_KeyState['D'])
+	{
+		sideSpeed += m_CameraSpeed;
+	}
+
+	if (m_KeyState['A'])
+	{
+		sideSpeed -= m_CameraSpeed;
+	}
+
+	glm::quat yaw = glm::vec3(0.f, m_CameraYaw, 0.f);
+	glm::quat pitch = glm::vec3(m_CameraPitch, 0.f, 0.f);
+	m_Camera.SetRotation(pitch * yaw);
+	m_Camera.Translate(glm::vec3(sideSpeed, 0.f, forwardSpeed));
 }
 
 void Engine::LoadGeometry()
@@ -291,6 +289,6 @@ void Engine::SetupLights()
 		std::make_unique<SpotLight>(
 			glm::vec3(2.f, 3.f, 2.f),
 			glm::vec3(0.f, 0.5f, 0.f),
-			glm::vec3(1.f, 0.75f, 0.7f) * 12.f,
+			glm::vec3(1.f, 1.f, 1.f) * 12.f,
 			60.f, 512u, 0.1f, 30.f));
 }

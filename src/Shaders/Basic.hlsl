@@ -15,8 +15,7 @@ cbuffer Constants : register(b0)
 	float4x4	cView;
 	float4x4	cProj;
 	float4x4	cViewProj;
-	float		cAspect;
-	float2		cOffset;
+	float3		cCameraPos;
 	float		cPadding;
 };
 
