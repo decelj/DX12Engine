@@ -65,9 +65,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				switch (msg.message)
 				{
 				case WM_LBUTTONDOWN:
+					SetCapture(window.Handle());
 					engine.OnMousePress({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
 					break;
 				case WM_LBUTTONUP:
+					ReleaseCapture();
 					engine.OnMouseRelease({ GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam) });
 					break;
 				case WM_MOUSEMOVE:

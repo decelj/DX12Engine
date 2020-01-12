@@ -11,7 +11,7 @@ public:
 
 	void Translate(const glm::vec3& delta)
 	{
-		m_Translation += delta;
+		m_Translation += delta * m_ViewQuat;
 		CalculateViewMatrix();
 	}
 
@@ -50,7 +50,7 @@ private:
 	{
 		glm::mat4 rotate = glm::mat4_cast(m_ViewQuat);
 		glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), -m_Translation);
-		m_View = translate * rotate;
+		m_View = rotate * translate;
 	}
 
 	glm::quat	m_ViewQuat;
